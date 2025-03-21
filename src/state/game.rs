@@ -96,7 +96,6 @@ pub fn update_play_sound(
         ));
     }
     if !death_events.is_empty() {
-        println!("{:?}","death!");
         death_events.clear();
         commands.spawn((
             AudioPlayer::new(death_sound.0.clone()),
@@ -107,52 +106,6 @@ pub fn update_play_sound(
             },
         ));
     }
-    /*
-    if !landing_events.is_empty() {
-        landing_events.clear();
-        
-        commands.spawn((
-            //AudioBundle {
-            //    source: landing_sound.0.clone(),
-            //    settings: PlaybackSettings {
-            //        mode: bevy::audio::PlaybackMode::Despawn,
-            //        volume: bevy::audio::Volume::new(0.05),
-            //        ..default()
-            //    },
-            //}
-            AudioPlayer::new(landing_sound.0.clone()),
-            PlaybackSettings {
-                mode: { audio::PlaybackMode::Despawn },
-                volume: audio::Volume::new(0.05),
-                ..default()
-            },
-        ));
-    } 
-
-    if !side_landing_events.is_empty()  {
-        side_landing_events.clear();
-        commands.spawn((
-            AudioPlayer::new(side_landing_sound.0.clone()),
-            PlaybackSettings {
-                mode: { audio::PlaybackMode::Despawn },
-                volume: audio::Volume::new(0.05),
-                ..default()
-            },
-        ));
-    }
-
-    if !get_number_events.is_empty()  {
-        get_number_events.clear();
-        commands.spawn((
-            AudioPlayer::new(get_number_sound.0.clone()),
-            PlaybackSettings {
-                mode: { audio::PlaybackMode::Despawn },
-                volume: audio::Volume::new(0.05),
-                ..default()
-            },
-        ));
-    }
-    */
 }
 
 pub fn update_fade_stage_text(

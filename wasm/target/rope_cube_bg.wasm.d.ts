@@ -10,9 +10,9 @@ export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) =>
 export const __wbindgen_free: (a: number, b: number, c: number) => void;
 export const __wbindgen_export_6: WebAssembly.Table;
 export const _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hde7bab1965a01102: (a: number, b: number, c: number) => void;
-export const closure8141_externref_shim: (a: number, b: number, c: any) => void;
+export const closure8140_externref_shim: (a: number, b: number, c: any) => void;
 export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hb894b116e43ff13e: (a: number, b: number) => void;
-export const closure8145_externref_shim: (a: number, b: number, c: any, d: any) => void;
+export const closure8144_externref_shim: (a: number, b: number, c: any, d: any) => void;
 export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hc6e90f6b61b997a0: (a: number, b: number) => void;
-export const closure104770_externref_shim: (a: number, b: number, c: any) => void;
+export const closure104769_externref_shim: (a: number, b: number, c: any) => void;
 export const __wbindgen_start: () => void;
