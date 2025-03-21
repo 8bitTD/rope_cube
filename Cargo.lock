@@ -1615,12 +1615,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cargo-rustc-cfg"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87e783830d99e84e091bf5aa0c83291f3b9c21cef8d25ce654626783571cf4e4"
-
-[[package]]
 name = "cc"
 version = "1.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4212,12 +4206,11 @@ dependencies = [
 
 [[package]]
 name = "rope_cube"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_rapier2d",
- "cargo-rustc-cfg",
  "rapier2d",
 ]
 
