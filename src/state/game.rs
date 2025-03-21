@@ -382,7 +382,7 @@ pub fn collision_events(
 
 pub fn setup_asset(
     mut commands: Commands,
-    app: Res<MyApp>, 
+    mut app: ResMut<MyApp>, 
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -391,6 +391,8 @@ pub fn setup_asset(
     commands.insert_resource(JumpSound(asset_server.load(assets::SOUNDJUMP)));
     commands.insert_resource(GrabSound(asset_server.load(assets::SOUNDGRAB)));
     commands.insert_resource(DeathSound(asset_server.load(assets::SOUNDDEATH)));
+
+    app.game_state = GameState::In;
 
     commands.spawn((//カメラ
         Camera2d::default(),
@@ -500,7 +502,7 @@ pub fn setup_asset(
         PlayerInfo::default(),
         ReleaseResource
     ));
-    create_block(commands, app, asset_server, materials, meshes);
+    create_block(commands, app.into(), asset_server, materials, meshes);
 }
 
 pub fn create_block(
