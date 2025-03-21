@@ -249,19 +249,6 @@ pub fn update_game_state(
     }
 }
 
-pub fn stop(
-    mut commands: Commands,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut app: ResMut<MyApp>,
-    player: Single<Entity, With<PlayerInfo>>,
-){
-    if keyboard_input.just_pressed(KeyCode::Digit1){ 
-        app.is_stop = !app.is_stop;
-        if app.is_stop{ commands.entity(*player).insert(RigidBodyDisabled); }
-        else          { commands.entity(*player).remove::<RigidBodyDisabled>(); }
-    }
-}
-
 pub fn reset_game(
     mut commands: Commands,
     mut player: Single<(&mut PlayerInfo, &mut Transform, &mut Velocity, &mut ImpulseJoint, Entity), With<PlayerInfo>>,
@@ -314,7 +301,10 @@ pub fn camera_update(
             camera.0.translation += sa;
             if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
             let delta = accumulated_mouse_scroll.delta;
-            camera.1.scale -= delta.y * ds;
+            camera.1.scale -= match value::ISDEBUG{
+                true => delta.y * ds * system::FPS,
+                _ => delta.y * ds,
+            };
             if camera.1.scale < 1.0{camera.1.scale = 1.0}
             if camera.1.scale > 20.0{camera.1.scale = 20.0;}
         },
@@ -352,6 +342,7 @@ pub fn debug(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut root: Single<&mut Transform, With<RopeRoot>>,
     time: Res<Time>,
+    mut app: ResMut<MyApp>,
 ){
     if !value::ISDEBUG{return;}
     let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
@@ -363,6 +354,11 @@ pub fn debug(
     let ds = time.delta_secs();
     root.translation.x += x_axis as f32 * ds * 500.0;
     root.translation.y += y_axis as f32 * ds * 500.0;
+    if keyboard_input.just_pressed(KeyCode::KeyN){
+        app.game_state = GameState::Out;
+        app.stage_count += 1;
+    }
+
 }
 
 pub fn player_move(

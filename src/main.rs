@@ -12,7 +12,7 @@ fn main() {
     let mut rp = RapierDebugRenderPlugin::default();
     rp.enabled = define::value::RAPIERDEBUGRENDERPLUGINENABLED;
     let px = match define::value::ISDEBUG{
-        true => {-1500},
+        true => {-1700},
         _ => {50}
     };
     App::new()

@@ -5,12 +5,11 @@ use super::define::*;
 
 #[derive(Resource)] 
 pub struct MyApp{
+    pub stage_count: usize,
     pub game_state: GameState,
     pub game_state_timer: f32,
     pub joint_distance: f32,
     pub is_reset_game: bool,
-    pub is_stop: bool,
-    pub stage_count: usize,
     pub text_stage_alpha: f32,
     pub is_clear: bool,
     pub timer: f32,
@@ -20,12 +19,11 @@ pub struct MyApp{
 impl Default for MyApp{
     fn default() -> MyApp{
         MyApp { 
+            stage_count: 1,
             game_state: GameState::In,
             game_state_timer: 0.0,
             joint_distance: 100.0, 
             is_reset_game: false,
-            is_stop: false,
-            stage_count: 1,
             text_stage_alpha: value::DEFAULTTEXTSTAGEALPHA,
             is_clear: false,
             timer: 0.0,
@@ -72,7 +70,6 @@ impl Plugin for StatePlugin {
                 game::camera_update,
                 game::collision_events,
                 game::reset_game,
-                game::stop,
                 game::update_game_state,
                 game::update_goal_animation,
                 game::update_play_sound,

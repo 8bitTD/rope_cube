@@ -24,7 +24,8 @@ impl Stage{
         match stage_count {
             1 => get_stage1(),
             2 => get_stage2(),
-            _ => get_stage2(),
+            3 => get_stage3(),
+            _ => get_stage3(),
         }
     }
     pub fn new(gpx: f32, gpy: f32) -> Stage{
@@ -65,4 +66,17 @@ pub fn get_stage2() -> Stage{
         .add_block(1090.0, 390.0, 10.0, 610.0)//右
         .add_block(360.0,190.0,420.0, 10.0)
         .add_block(580.0,550.0,500.0, 10.0)
+}
+pub fn get_stage3() -> Stage{
+    Stage::new(0.0, 130.0)//ゴール
+        .add_block(0.0, 1000.0, 1000.0, 10.0)//上
+        .add_block(0.0, -1000.0, 1000.0, 10.0)//下
+        .add_block(-1000.0, 0.0, 10.0, 1000.0)//左
+        .add_block(1000.0, 0.0, 10.0, 1000.0)//右
+        .add_block(0.0, 50.0, 300.0, 10.0)
+        .add_block(-310.0, -470.0, 10.0, 530.0)
+        .add_block(300.0, 0.0, 10.0, 800.0)
+        .add_block(-150.0, 750.0, 10.0, 250.0)
+        .add_block(-230.0, 300.0, 530.0, 10.0)
+        .add_block(-750.0, 0.0, 10.0, 700.0)
 }
