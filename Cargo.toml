@@ -1,0 +1,11 @@
+[package]
+name = "rope_cube"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = {version = "0.15.3", features = ["mp3", "wav"]}
+bevy_rapier2d = "0.29.0"
+rapier2d = "0.23.1"
+bevy-inspector-egui = "0.30.0"
+cargo-rustc-cfg = "0.2.0"
