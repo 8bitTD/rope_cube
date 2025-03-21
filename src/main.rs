@@ -9,6 +9,7 @@ mod state;
 mod stage;
 
 fn main() {
+    
     let mut rp = RapierDebugRenderPlugin::default();
     rp.enabled = define::value::RAPIERDEBUGRENDERPLUGINENABLED;
     let px = match define::value::ISDEBUG{

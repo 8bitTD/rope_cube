@@ -472,6 +472,22 @@ pub fn setup_asset(
         StageText,
         ReleaseResource,
     ));
+    commands.spawn((
+        Text::new(env!("CARGO_PKG_VERSION")),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 10.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::End,
+            top: Val::Px(0.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
     commands.spawn((//ループBGM用
         AudioPlayer::new(asset_server.load(assets::BGM)),
         PlaybackSettings {
