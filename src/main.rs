@@ -14,18 +14,22 @@ fn main() {
     rp.enabled = define::value::RAPIERDEBUGRENDERPLUGINENABLED;
     let px = match define::value::ISDEBUG{
         true => {-1700},
-        _ => {50}
+        _ => {0}
+    };
+    let res = match define::value::ISDEBUG{
+        true => (1500.0, 900.0),
+        _ => (1920.0, 1080.0)
     };
     App::new()
         .add_plugins(
             DefaultPlugins.set(WindowPlugin{
                 primary_window: Some(Window {
                     title: define::common::TOOLNAME.into(),
-                    position: WindowPosition::new(IVec2::new(px, 10)),
-                    resolution: (1500.0, 900.0).into(),
+                    position: WindowPosition::new(IVec2::new(px, 0)),
+                    resolution: (res.0, res.1).into(),
                     transparent: true,
                     decorations: true,
-                    //mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+                    mode: WindowMode::Windowed,
                     present_mode: PresentMode::AutoNoVsync,
                     prevent_default_event_handling: false,
                     ..default()
