@@ -79,7 +79,7 @@ pub fn update_play_sound(
             AudioPlayer::new(jump_sound.0.clone()),
             PlaybackSettings {
                 mode: { audio::PlaybackMode::Despawn },
-                volume: audio::Volume::new(0.05),
+                volume: audio::Volume::new(value::VOLUME),
                 ..default()
             },
         ));
@@ -90,7 +90,7 @@ pub fn update_play_sound(
             AudioPlayer::new(grab_sound.0.clone()),
             PlaybackSettings {
                 mode: { audio::PlaybackMode::Despawn },
-                volume: audio::Volume::new(0.05),
+                volume: audio::Volume::new(value::VOLUME),
                 ..default()
             },
         ));
@@ -102,7 +102,7 @@ pub fn update_play_sound(
             AudioPlayer::new(death_sound.0.clone()),
             PlaybackSettings {
                 mode: { audio::PlaybackMode::Despawn },
-                volume: audio::Volume::new(0.05),
+                volume: audio::Volume::new(value::VOLUME),
                 ..default()
             },
         ));
