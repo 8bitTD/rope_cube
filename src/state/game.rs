@@ -303,7 +303,7 @@ pub fn camera_update(
             let delta = accumulated_mouse_scroll.delta;
             camera.1.scale -= match value::ISDEBUG{
                 true => delta.y * ds * system::FPS,
-                _ => delta.y * ds,
+                _ => delta.y * ds * 0.25,
             };
             if camera.1.scale < 1.0{camera.1.scale = 1.0}
             if camera.1.scale > 20.0{camera.1.scale = 20.0;}
@@ -472,7 +472,7 @@ pub fn setup_asset(
         StageText,
         ReleaseResource,
     ));
-    commands.spawn((
+    commands.spawn((//バージョン表記
         Text::new(env!("CARGO_PKG_VERSION")),
         TextFont {
             font: asset_server.load(assets::DEFAULTFONT),
