@@ -314,7 +314,7 @@ pub fn camera_update(
             camera.0.translation += sa;
             if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
             let delta = accumulated_mouse_scroll.delta;
-            camera.1.scale -= delta.y * ds * system::FPS;
+            camera.1.scale -= delta.y * ds;
             if camera.1.scale < 1.0{camera.1.scale = 1.0}
             if camera.1.scale > 20.0{camera.1.scale = 20.0;}
         },
