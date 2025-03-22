@@ -19,7 +19,7 @@ pub struct MyApp{
 impl Default for MyApp{
     fn default() -> MyApp{
         MyApp { 
-            stage_count: 1,
+            stage_count: value::STARTSTAGE,
             game_state: GameState::In,
             game_state_timer: 0.0,
             joint_distance: 100.0, 
