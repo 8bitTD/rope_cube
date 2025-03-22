@@ -1,6 +1,7 @@
 use bevy::{
     prelude::*,
     sprite::MeshMaterial2d,
+    sprite::Anchor,
     color::palettes::basic,
     audio,
 };
@@ -85,45 +86,95 @@ pub fn spawn_system(
         EndingText,
         ReleaseResource,
     )).with_children(|parent|{
+
         parent.spawn((
-            Text2d::new(format!("time: {}", time)),
+            Text2d::new(format!("time:")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 30.0,
                 ..default()
             },
+            Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(0.0, -60.0, 0.0)),
+            Transform::from_translation(Vec3::new(-20.0, -60.0, 0.0)),
         ));
         parent.spawn((
-            Text2d::new(format!("grab: {}", app.grab_count)),
+            Text2d::new(format!("{}", time)),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 30.0,
                 ..default()
             },
+            Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(0.0, -100.0, 0.0)),
+            Transform::from_translation(Vec3::new(20.0, -60.0, 0.0)),
+        ));
+        
+        parent.spawn((
+            Text2d::new(format!("grab:")),
+            TextFont {
+                font: asset_server.load(assets::DEFAULTFONT),
+                font_size: 30.0,
+                ..default()
+            },
+            Anchor::CenterRight,
+            MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
+            Transform::from_translation(Vec3::new(-20.0, -100.0, 0.0)),
         ));
         parent.spawn((
-            Text2d::new(format!("music: 魔王魂")),
+            Text2d::new(format!("{}", app.grab_count)),
+            TextFont {
+                font: asset_server.load(assets::DEFAULTFONT),
+                font_size: 30.0,
+                ..default()
+            },
+            Anchor::CenterLeft,
+            MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
+            Transform::from_translation(Vec3::new(20.0, -100.0, 0.0)),
+        ));
+        parent.spawn((
+            Text2d::new(format!("music:")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 20.0,
                 ..default()
             },
+            Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(0.0, -170.0, 0.0)),
+            Transform::from_translation(Vec3::new(-20.0, -170.0, 0.0)),
         ));
         parent.spawn((
-            Text2d::new(format!("sound: FC音工場")),
+            Text2d::new(format!("魔王魂")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 20.0,
                 ..default()
             },
+            Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(0.0, -200.0, 0.0)),
+            Transform::from_translation(Vec3::new(20.0, -170.0, 0.0)),
+        ));
+        parent.spawn((
+            Text2d::new(format!("sound:")),
+            TextFont {
+                font: asset_server.load(assets::DEFAULTFONT),
+                font_size: 20.0,
+                ..default()
+            },
+            Anchor::CenterRight,
+            MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
+            Transform::from_translation(Vec3::new(-20.0, -200.0, 0.0)),
+        ));
+        parent.spawn((
+            Text2d::new(format!("FC音工場")),
+            TextFont {
+                font: asset_server.load(assets::DEFAULTFONT),
+                font_size: 20.0,
+                ..default()
+            },
+            Anchor::CenterLeft,
+            MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
+            Transform::from_translation(Vec3::new(20.0, -200.0, 0.0)),
         ));
     });
     commands.spawn((
