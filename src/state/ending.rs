@@ -108,7 +108,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(offset_x, -60.0, 0.0)),
+            Transform::from_translation(Vec3::new(0.0, -60.0, 0.0)),
         ));
         
         parent.spawn((
@@ -131,7 +131,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(offset_x, -100.0, 0.0)),
+            Transform::from_translation(Vec3::new(0.0, -100.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("music:")),
@@ -153,7 +153,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(offset_x, -170.0, 0.0)),
+            Transform::from_translation(Vec3::new(0.0, -170.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("sound:")),
@@ -175,7 +175,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(offset_x, -200.0, 0.0)),
+            Transform::from_translation(Vec3::new(0.0, -200.0, 0.0)),
         ));
     });
     commands.spawn((
