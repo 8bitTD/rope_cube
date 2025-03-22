@@ -392,8 +392,9 @@ pub fn setup_asset(
     commands.insert_resource(GrabSound(asset_server.load(assets::SOUNDGRAB)));
     commands.insert_resource(DeathSound(asset_server.load(assets::SOUNDDEATH)));
 
-    app.game_state = GameState::In;
-    app.is_reset_game = false;
+    //app.game_state = GameState::In;
+    //app.is_reset_game = false;
+    *app = MyApp::default();
 
     commands.spawn((//カメラ
         Camera2d::default(),
