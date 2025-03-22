@@ -75,6 +75,7 @@ pub fn spawn_system(
     }else{
         format!("{} seconds", app.timer as u32)
     };
+    let offset_x = 50.0;
     commands.spawn((
         Text2d::new("thank you for playing!"),
         TextFont {
@@ -96,7 +97,7 @@ pub fn spawn_system(
             },
             Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(-20.0, -60.0, 0.0)),
+            Transform::from_translation(Vec3::new(-offset_x, -60.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("{}", time)),
@@ -107,7 +108,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(20.0, -60.0, 0.0)),
+            Transform::from_translation(Vec3::new(offset_x, -60.0, 0.0)),
         ));
         
         parent.spawn((
@@ -119,7 +120,7 @@ pub fn spawn_system(
             },
             Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(-20.0, -100.0, 0.0)),
+            Transform::from_translation(Vec3::new(-offset_x, -100.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("{}", app.grab_count)),
@@ -130,7 +131,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(20.0, -100.0, 0.0)),
+            Transform::from_translation(Vec3::new(offset_x, -100.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("music:")),
@@ -141,7 +142,7 @@ pub fn spawn_system(
             },
             Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(-20.0, -170.0, 0.0)),
+            Transform::from_translation(Vec3::new(-offset_x, -170.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("魔王魂")),
@@ -152,7 +153,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(20.0, -170.0, 0.0)),
+            Transform::from_translation(Vec3::new(offset_x, -170.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("sound:")),
@@ -163,7 +164,7 @@ pub fn spawn_system(
             },
             Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(-20.0, -200.0, 0.0)),
+            Transform::from_translation(Vec3::new(-offset_x, -200.0, 0.0)),
         ));
         parent.spawn((
             Text2d::new(format!("FC音工場")),
@@ -174,7 +175,7 @@ pub fn spawn_system(
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(20.0, -200.0, 0.0)),
+            Transform::from_translation(Vec3::new(offset_x, -200.0, 0.0)),
         ));
     });
     commands.spawn((
