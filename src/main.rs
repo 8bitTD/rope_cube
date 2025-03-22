@@ -29,9 +29,10 @@ fn main() {
                     resolution: (res.0, res.1).into(),
                     transparent: true,
                     decorations: true,
-                    mode: WindowMode::Windowed,
-                    present_mode: PresentMode::AutoNoVsync,
+                    //mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+                    present_mode: PresentMode::AutoNoVsync, 
                     prevent_default_event_handling: false,
+                    fit_canvas_to_parent: true,
                     ..default()
                 }),
                 exit_condition: bevy::window::ExitCondition::OnAllClosed,
@@ -42,14 +43,13 @@ fn main() {
             level: bevy::log::Level::WARN,
             ..default()
         }).set(AssetPlugin {
-	        meta_check: bevy::asset::AssetMetaCheck::Never,
-	        ..default()
-	    }))
+            meta_check: bevy::asset::AssetMetaCheck::Never,
+            ..default()
+        }))
         .add_plugins((
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
             rp,
         ))
-        
         //.add_plugins(WorldInspectorPlugin::new())
         .add_plugins(state::StatePlugin)
         .run();
