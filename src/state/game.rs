@@ -55,15 +55,15 @@ pub struct StageText;
 #[derive(Event, Default)]
 pub struct JumpEvent;
 #[derive(Resource)]
-pub struct JumpSound(Handle<AudioSource>);
+pub struct JumpSound(pub Handle<AudioSource>);
 #[derive(Event, Default)]
 pub struct GrabEvent;
 #[derive(Resource)]
-pub struct GrabSound(Handle<AudioSource>);
+pub struct GrabSound(pub Handle<AudioSource>);
 #[derive(Event, Default)]
 pub struct DeathEvent;
 #[derive(Resource)]
-pub struct DeathSound(Handle<AudioSource>);
+pub struct DeathSound(pub Handle<AudioSource>);
 
 #[derive(Component)]
 pub struct PlayerParticle{
@@ -427,6 +427,7 @@ pub fn setup_asset(
         Camera2d::default(),
         ReleaseResource
     ));
+    
     commands.spawn((//黒フェード用
         Mesh2d(meshes.add(Rectangle::default())),
         MeshMaterial2d(materials.add(Color::from(basic::BLACK))),
@@ -435,6 +436,7 @@ pub fn setup_asset(
         BlackRectangle,
         ReleaseResource,
     ));
+    
     let stage_text = match app.stage_count == value::MAXSTAGE{
         true => {"Last Stage".into()},
         _ => {format!("Stage {}",app.stage_count)},

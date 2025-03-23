@@ -1,0 +1,477 @@
+use bevy::{
+    prelude::*, 
+    color::palettes::basic,
+    sprite::*, 
+};
+use bevy_rapier2d::prelude::*;
+use super::super::define::*;
+use super::super::state::*;
+use super::game;
+
+#[derive(Component)]
+pub struct SkipButton;
+
+#[derive(Component)]
+pub struct ResetButton;
+
+pub fn collision_events(
+    mut collision_events: EventReader<CollisionEvent>,
+    goal: Single<Entity, With<game::GoalCollision>>,
+    player: Single<Entity, With<game::PlayerInfo>>,
+    mut app_state: ResMut<NextState<AppState>>,
+){
+    if collision_events.is_empty(){return;}
+    for evt in collision_events.read(){
+        match evt{
+            CollisionEvent::Started(fe, se, _ce) => {
+                let other = match fe.index() == player.index(){
+                    true => {se},
+                    _ => {fe}
+                };
+                if goal.index() == other.index(){//クリア
+                    app_state.set(AppState::Game);
+                }
+            },
+            _ => {}
+        }
+    }
+}
+
+pub fn rope_grab(
+    mut player: Single<(&Transform, &mut ImpulseJoint, &mut game::PlayerInfo, &mut Velocity), (With<game::PlayerInfo>, Without<game::RopeRoot>)>,
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+    mut root: Single<&mut Transform, With<game::RopeRoot>>,
+    mut jump_events: EventWriter<game::JumpEvent>,
+    mut grab_events: EventWriter<game::GrabEvent>,
+    app: Res<MyApp>,
+){
+    if app.is_tutorial_skip_button_hover || app.is_tutorial_reset_button_hover{return;}
+    if !mouse_button_input.just_pressed(MouseButton::Left){return;}
+    if !player.2.is_grab_rope{
+        let mut px = player.0.translation.x;
+        let mut py = player.0.translation.y;
+        px -= player.3.linvel.x * 0.01;
+        py -= player.3.linvel.y * 0.01;
+        root.translation = Vec3::new(px, py, 0.0);
+        player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
+        grab_events.send_default();
+        player.2.is_grab_rope = true;
+    }else{
+        player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Disabled;
+        jump_events.send_default();
+        player.2.is_grab_rope = false;
+    }
+}
+
+pub fn camera(
+    mut camera: Single<(&mut Transform, &mut OrthographicProjection), (With<Camera2d>, Without<game::PlayerInfo>)>,
+    player: Single<&Transform, (With<game::PlayerInfo>, Without<Camera2d>)>,
+    time: Res<Time>,
+    accumulated_mouse_scroll: Res<bevy::input::mouse::AccumulatedMouseScroll>,
+    //app: Res<MyApp>,
+){
+    let ds = time.delta_secs();
+    let sa = (player.translation - camera.0.translation) * ds * system::FPS*0.05;
+    camera.0.translation += sa;
+    if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
+    let delta = accumulated_mouse_scroll.delta;
+    camera.1.scale -= match value::ISDEBUG{
+        true => delta.y * ds * system::FPS,
+        _ => delta.y * ds * 0.25,
+    };
+    if camera.1.scale < 1.0{camera.1.scale = 1.0}
+    if camera.1.scale > 20.0{camera.1.scale = 20.0;}
+}
+
+pub fn push_skip_button(
+    mut button: Single<(&Interaction, &Button, &mut BackgroundColor), With<SkipButton>>,
+    mut app_state: ResMut<NextState<AppState>>,
+    mut app: ResMut<MyApp>,
+){
+    match button.0{
+        Interaction::Hovered => {
+            button.2.0 = Color::srgb(0.15, 0.80, 0.15);
+            app.is_tutorial_skip_button_hover = true;
+        },
+        Interaction::Pressed => {
+            button.2.0 = Color::srgb(0.0, 0.0, 0.0);
+            app_state.set(AppState::Game);
+        },
+        _ => {
+            button.2.0 = Color::srgb(0.25, 0.25, 0.25);
+            app.is_tutorial_skip_button_hover = false;
+        }
+    };    
+}
+
+pub fn push_reset_button(
+    mut button: Single<(&Interaction, &Button, &mut BackgroundColor), With<ResetButton>>,
+    mut rope_root: Single<&mut Transform, With<game::RopeRoot>>,
+    mut app: ResMut<MyApp>,
+    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity) ,With<game::PlayerInfo>>
+){
+    match button.0{
+        Interaction::Hovered => {
+            button.2.0 = Color::srgb(0.15, 0.80, 0.15);
+            app.is_tutorial_reset_button_hover = true;
+        },
+        Interaction::Pressed => {
+            button.2.0 = Color::srgb(0.0, 0.0, 0.0);
+            player.0.is_grab_rope = true;
+            player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
+            player.2.linvel = Vec2::new(0.0, 0.0);
+            rope_root.translation = Vec3::new(0.0, 0.0, 0.0);
+        },
+        _ => {
+            button.2.0 = Color::srgb(0.25, 0.25, 0.25);
+            app.is_tutorial_reset_button_hover = false;
+        }
+    };    
+}
+
+pub fn setup_asset(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    app: Res<MyApp>,
+) {
+    commands.insert_resource(ClearColor(Color::srgb(0.175, 0.175, 0.175)));
+    commands.insert_resource(game::JumpSound(asset_server.load(assets::SOUNDJUMP)));
+    commands.insert_resource(game::GrabSound(asset_server.load(assets::SOUNDGRAB)));
+    commands.insert_resource(game::DeathSound(asset_server.load(assets::SOUNDDEATH)));
+
+    //*app = MyApp::default();
+
+    commands.spawn((//カメラ
+        Camera2d::default(),
+        ReleaseResource
+    ));
+    
+    commands.spawn((//バージョン表記
+        Text::new(env!("CARGO_PKG_VERSION")),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 10.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::End,
+            top: Val::Px(0.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+
+    commands.spawn((//チュートリアルテキスト
+        Text::new("Tutorial"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 50.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::Start,
+            justify_self: JustifySelf::Start,
+            //top: Val::Px(-150.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+
+    commands.spawn((//SkipButton
+        Node {
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::SpaceBetween,
+            border: UiRect::all(Val::Px(5.0)),
+            left: Val::Px(230.0),
+            top: Val::Px(5.0),
+            ..default()
+        },
+        Text::new("Skip"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 40.0,
+            ..default()
+        },
+        BorderRadius::px(5.0, 5.0, 5.0, 5.0),
+        BorderColor(Color::BLACK),
+        Button,
+        BackgroundColor(Color::srgb(0.15,0.15, 0.15)),
+        SkipButton,
+        ReleaseResource,
+    ));
+
+    commands.spawn((//ResetButton
+        Node {
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::SpaceBetween,
+            border: UiRect::all(Val::Px(5.0)),
+            left: Val::Px(330.0),
+            top: Val::Px(5.0),
+            ..default()
+        },
+        Text::new("Reset"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 40.0,
+            ..default()
+        },
+        BorderRadius::px(5.0, 5.0, 5.0, 5.0),
+        BorderColor(Color::BLACK),
+        Button,
+        BackgroundColor(Color::srgb(0.15,0.15, 0.15)),
+        ResetButton,
+        ReleaseResource,
+    ));
+
+    commands.spawn((//説明テキスト
+        Text::new("Mouse move:"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            right: Val::Px(75.0),
+            bottom: Val::Px(200.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+    commands.spawn((//説明テキスト
+        Text::new("cube swing"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            left: Val::Px(75.0),
+            bottom: Val::Px(200.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+    
+    commands.spawn((//説明テキスト
+        Text::new("Mouse left-click:"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            right: Val::Px(92.0),
+            bottom: Val::Px(170.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+    commands.spawn((//説明テキスト
+        Text::new("jump"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            left: Val::Px(48.0),
+            bottom: Val::Px(170.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+
+    commands.spawn((//説明テキスト
+        Text::new("When jumping, mouse left-click:"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            right: Val::Px(170.0),
+            bottom: Val::Px(140.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+    commands.spawn((//説明テキスト
+        Text::new("grab rope"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            left: Val::Px(65.0),
+            bottom: Val::Px(140.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+
+    commands.spawn((//説明テキスト
+        Text::new("Mouse wheel:"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            right: Val::Px(80.0),
+            bottom: Val::Px(110.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+    commands.spawn((//説明テキスト
+        Text::new("zoom in, zoom out"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 20.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            left: Val::Px(110.0),
+            bottom: Val::Px(110.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+
+    commands.spawn((//説明テキスト
+        Text::new("Move to the NEXT!"),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 30.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            bottom: Val::Px(50.0),
+            ..default()
+        },
+        ReleaseResource,
+    ));
+
+    let root = commands.spawn((//ロープの根元部分
+        Sprite{
+            color: Color::srgb(1.0, 0.5, 0.0),
+            custom_size: Some(Vec2::new(5.0, 5.0)),
+            ..Default::default()
+        },
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        RigidBody::Fixed,
+        Velocity::zero(),
+        Collider::cuboid(2.0, 2.0),
+        game::RopeRoot,
+        ReleaseResource
+    )).with_children(|parent|{
+        parent.spawn((
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            game::RopeAngle,
+        )).with_children(|parent2|{
+            parent2.spawn((
+                Sprite{
+                    color: Color::srgb(0.5, 0.5, 0.5),
+                    custom_size: Some(Vec2::new(2.0,10.0)),
+                    ..Default::default()
+                },
+                Transform::from_xyz(0.0, 0.0, -10.0),
+                Visibility::Visible,
+                game::RopeSprite
+            ));
+        });
+    }).id();
+    let joint = RopeJointBuilder::new(app.joint_distance)
+        .local_anchor1(Vec2::new(0.0, 0.0))
+        .local_anchor2(Vec2::new( 0.0, 0.0));
+    commands.spawn((
+        Sprite{
+            color: Color::srgb(0.0, 1.0, 0.0),
+            custom_size: Some(Vec2::new(20.0, 20.0)),
+            ..Default::default()
+        },
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        RigidBody::Dynamic,
+        ActiveEvents::COLLISION_EVENTS,
+        Visibility::Visible,
+        LockedAxes::ROTATION_LOCKED,
+        Velocity::zero(),
+        Collider::cuboid(4.0, 4.0),
+        ImpulseJoint::new(root, joint),
+        game::PlayerInfo::default(),
+        ReleaseResource
+    ));
+
+    commands.spawn((
+        Collider::cuboid(10.0, 10.0),
+        Sensor,
+        Transform::from(Transform::from_xyz(400.0, 0.0, -10.0)),
+        game::GoalCollision,
+        ReleaseResource
+    )).with_children(|parent|{
+        parent.spawn((
+            Mesh2d(meshes.add(Rectangle::new(20.0, 20.0))),
+            MeshMaterial2d(materials.add(Color::srgb(0.0, 0.0, 0.0))),
+            Transform::from_translation(Vec3::new(0.0,0.0,1.0)),
+        ));
+        parent.spawn((
+            Mesh2d(meshes.add(Rectangle::new(22.0, 22.0))),
+            MeshMaterial2d(materials.add(Color::srgb(0.0, 1.0, 0.0))),
+            game::GoalBlock,
+        ));
+        let goal_or_next = match app.stage_count == value::MAXSTAGE{
+            _ => {"NEXT!"},
+        };
+        for (u, c) in goal_or_next.chars().enumerate(){
+            parent.spawn((
+                Text2d::new(c.to_string()),
+                TextFont {
+                    font: asset_server.load(assets::DEFAULTFONT),
+                    font_size: 75.0,
+                    ..default()
+                },
+                MeshMaterial2d(materials.add(Color::from(basic::GRAY))),
+                Transform::default()
+                    .with_translation(Vec3::new((u as f32 * 14.0) - 21.0, 10.0,20.0))
+                    .with_scale(Vec3::new(0.3,0.3,0.3)),
+                Anchor::BottomCenter,
+                Visibility::Visible,
+                game::GoalText,
+                ReleaseResource,
+            ));
+        }
+    });
+}

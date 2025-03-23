@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 pub mod game;
 pub mod ending;
+pub mod tutorial;
 use super::define::*;
 
 #[derive(Resource)] 
@@ -15,6 +16,8 @@ pub struct MyApp{
     pub timer: f32,
     pub grab_count: usize,
     pub is_ending_end: bool,
+    pub is_tutorial_skip_button_hover: bool,
+    pub is_tutorial_reset_button_hover: bool,
 }
 impl Default for MyApp{
     fn default() -> MyApp{
@@ -29,6 +32,8 @@ impl Default for MyApp{
             timer: 0.0,
             grab_count: 0,
             is_ending_end: false,
+            is_tutorial_skip_button_hover: false,
+            is_tutorial_reset_button_hover: false,
         }
     }
 }
@@ -36,6 +41,7 @@ impl Default for MyApp{
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum AppState{
     #[default]
+    Tutorial,
     Game,
     Ending,
 }
@@ -59,6 +65,22 @@ impl Plugin for StatePlugin {
         .add_event::<game::JumpEvent>()
         .add_event::<game::GrabEvent>()
         .add_event::<game::DeathEvent>()
+        .add_systems(OnEnter(AppState::Tutorial), tutorial::setup_asset)
+        .add_systems(Update,
+            (
+                game::update_gismo,
+                tutorial::camera,
+                game::rope_angle_animation,
+                tutorial::rope_grab,
+                tutorial::push_skip_button,
+                tutorial::push_reset_button,
+                game::player_move,
+                game::update_play_sound,
+                game::update_goal_animation,
+                tutorial::collision_events,
+            ).chain().run_if(in_state(AppState::Tutorial)),
+        )
+        .add_systems(OnExit(AppState::Tutorial), despawn)
         .add_systems(OnEnter(AppState::Game), game::setup_asset)
         .add_systems(Update, 
             (
