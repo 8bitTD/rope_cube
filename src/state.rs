@@ -65,6 +65,7 @@ impl Plugin for StatePlugin {
         .add_event::<game::JumpEvent>()
         .add_event::<game::GrabEvent>()
         .add_event::<game::DeathEvent>()
+        .add_event::<game::EnterEvent>()
         .add_systems(OnEnter(AppState::Tutorial), tutorial::setup_asset)
         .add_systems(Update,
             (

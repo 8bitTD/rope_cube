@@ -19,6 +19,7 @@ pub fn collision_events(
     goal: Single<Entity, With<game::GoalCollision>>,
     player: Single<Entity, With<game::PlayerInfo>>,
     mut app_state: ResMut<NextState<AppState>>,
+    mut enter_events: EventWriter<game::EnterEvent>,
 ){
     if collision_events.is_empty(){return;}
     for evt in collision_events.read(){
@@ -30,6 +31,7 @@ pub fn collision_events(
                 };
                 if goal.index() == other.index(){//クリア
                     app_state.set(AppState::Game);
+                    enter_events.send_default();
                 }
             },
             _ => {}
@@ -87,6 +89,7 @@ pub fn push_skip_button(
     mut button: Single<(&Interaction, &Button, &mut BackgroundColor), With<SkipButton>>,
     mut app_state: ResMut<NextState<AppState>>,
     mut app: ResMut<MyApp>,
+    mut enter_events: EventWriter<game::EnterEvent>,
 ){
     match button.0{
         Interaction::Hovered => {
@@ -95,6 +98,7 @@ pub fn push_skip_button(
         },
         Interaction::Pressed => {
             button.2.0 = Color::srgb(0.0, 0.0, 0.0);
+            enter_events.send_default();
             app_state.set(AppState::Game);
         },
         _ => {
@@ -108,7 +112,8 @@ pub fn push_reset_button(
     mut button: Single<(&Interaction, &Button, &mut BackgroundColor), With<ResetButton>>,
     mut rope_root: Single<&mut Transform, With<game::RopeRoot>>,
     mut app: ResMut<MyApp>,
-    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity) ,With<game::PlayerInfo>>
+    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity) ,With<game::PlayerInfo>>,
+    //mut enter_events: EventWriter<game::EnterEvent>,
 ){
     match button.0{
         Interaction::Hovered => {
@@ -121,12 +126,13 @@ pub fn push_reset_button(
             player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
             player.2.linvel = Vec2::new(0.0, 0.0);
             rope_root.translation = Vec3::new(0.0, 0.0, 0.0);
+            //enter_events.send_default();
         },
         _ => {
             button.2.0 = Color::srgb(0.25, 0.25, 0.25);
             app.is_tutorial_reset_button_hover = false;
         }
-    };    
+    };        
 }
 
 pub fn setup_asset(
@@ -140,6 +146,7 @@ pub fn setup_asset(
     commands.insert_resource(game::JumpSound(asset_server.load(assets::SOUNDJUMP)));
     commands.insert_resource(game::GrabSound(asset_server.load(assets::SOUNDGRAB)));
     commands.insert_resource(game::DeathSound(asset_server.load(assets::SOUNDDEATH)));
+    commands.insert_resource(game::EnterSound(asset_server.load(assets::SOUNDENTER)));
 
     //*app = MyApp::default();
 

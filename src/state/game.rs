@@ -65,6 +65,11 @@ pub struct DeathEvent;
 #[derive(Resource)]
 pub struct DeathSound(pub Handle<AudioSource>);
 
+#[derive(Event, Default)]
+pub struct EnterEvent;
+#[derive(Resource)]
+pub struct EnterSound(pub Handle<AudioSource>);
+
 #[derive(Component)]
 pub struct PlayerParticle{
     pub tx: f32,
@@ -83,6 +88,8 @@ pub fn update_play_sound(
     mut grab_events: EventReader<GrabEvent>,
     death_sound: Res<DeathSound>,
     mut death_events: EventReader<DeathEvent>,
+    enter_sound: Res<EnterSound>,
+    mut enter_events: EventReader<EnterEvent>,
 ) {
     if !jump_events.is_empty() {
         jump_events.clear();
@@ -117,6 +124,19 @@ pub fn update_play_sound(
             },
         ));
     }
+
+    if !enter_events.is_empty() {
+        enter_events.clear();
+        commands.spawn((
+            AudioPlayer::new(enter_sound.0.clone()),
+            PlaybackSettings {
+                mode: { audio::PlaybackMode::Despawn },
+                volume: audio::Volume::new(value::VOLUME),
+                ..default()
+            },
+        ));
+    }
+    
 }
 
 pub fn update_fade_stage_text(
@@ -375,6 +395,7 @@ pub fn collision_events(
     mut death_events: EventWriter<DeathEvent>,
     mut player_particle: Query<(&mut RigidBody, &mut Velocity, &PlayerParticle), (With<PlayerParticle>, Without<PlayerInfo>, Without<GoalCollision>, Without<FixedBlock>)>,
     mut player_particle_root: Single<&mut Transform, (With<PlayerParticleRoot>, Without<PlayerInfo>)>,
+    mut enter_events: EventWriter<EnterEvent>,
 ){
     if app.game_state != GameState::Play {return;}
     if collision_events.is_empty(){return;}
@@ -401,6 +422,7 @@ pub fn collision_events(
                 if goal.index() == other.index(){//クリア
                     app.game_state = GameState::Out;
                     app.stage_count += 1;
+                    enter_events.send_default();
                     commands.entity(player.0).insert(RigidBodyDisabled);
                 }
             },

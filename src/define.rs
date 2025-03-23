@@ -16,7 +16,8 @@ pub mod assets{
 
     pub const SOUNDJUMP: &str = "sound/jump.mp3";
     pub const SOUNDGRAB: &str = "sound/grab.wav";
-    pub const SOUNDDEATH: &str = "sound/death.wav";
+    pub const SOUNDDEATH: &str = "sound/se_hit_002.wav";
+    pub const SOUNDENTER: &str = "sound/se_powerup_005.wav";
 }
 
 pub mod value{
