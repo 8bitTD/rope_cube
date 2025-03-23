@@ -4206,11 +4206,12 @@ dependencies = [
 
 [[package]]
 name = "rope_cube"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_rapier2d",
+ "rand",
  "rapier2d",
 ]
 

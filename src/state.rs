@@ -67,7 +67,7 @@ impl Plugin for StatePlugin {
                 game::player_move,
                 game::rope_grab,
                 game::rope_angle_animation,
-                game::camera_update,
+                game::camera,
                 game::collision_events,
                 game::reset_game,
                 game::update_game_state,

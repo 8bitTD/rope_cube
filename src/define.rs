@@ -21,11 +21,11 @@ pub mod assets{
 
 pub mod value{
     pub const VOLUME: f32 = 0.05; //0.05
-    pub const RAPIERDEBUGRENDERPLUGINENABLED: bool = false;
     pub const FADETIME: f32 = 1.0;
     pub const DEFAULTTEXTSTAGEALPHA: f32 = 3.0;
     pub const STARTSTAGE: usize = 1;
     pub const MAXSTAGE: usize = 4;
     pub const ENDINGTEXTMOVE: f32 = 130.0;
+    pub const RAPIERDEBUGRENDERPLUGINENABLED: bool = false;
     pub const ISDEBUG: bool = false;
 }

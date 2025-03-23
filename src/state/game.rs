@@ -5,6 +5,9 @@ use bevy::{
     audio,
 };
 use bevy_rapier2d::prelude::*;
+//use rapier2d::prelude::RigidBodyChanges;
+//use rapier2d::prelude::RigidBodyType;
+use rand::distributions::{Distribution, Uniform};
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use super::super::define::*;
 use super::super::state::*;
@@ -62,8 +65,17 @@ pub struct DeathEvent;
 #[derive(Resource)]
 pub struct DeathSound(Handle<AudioSource>);
 
+#[derive(Component)]
+pub struct PlayerParticle{
+    pub tx: f32,
+    pub ty: f32,
+    pub vx: f32,
+    pub vy: f32,
+}
+#[derive(Component)]
+pub struct PlayerParticleRoot;
+
 pub fn update_play_sound(
-    //app: Res<MyApp>, 
     mut commands: Commands,
     jump_sound: Res<JumpSound>,
     mut jump_events: EventReader<JumpEvent>,
@@ -72,7 +84,6 @@ pub fn update_play_sound(
     death_sound: Res<DeathSound>,
     mut death_events: EventReader<DeathEvent>,
 ) {
-    //if app.game_state != GameState::Play{return;}
     if !jump_events.is_empty() {
         jump_events.clear();
         commands.spawn((
@@ -156,7 +167,6 @@ pub fn update_goal_animation(
     mut materials: ResMut<Assets<ColorMaterial>>,
     time: Res<Time>
 ) {
-    
     let elapsed = time.elapsed().as_secs_f32();
     let r_wave = (2.0 * std::f32::consts::PI * elapsed  / 1.24 as f32).sin() + 0.8;
     let g_wave = (2.0 * std::f32::consts::PI * elapsed  / 0.77 as f32).sin() + 0.8;
@@ -197,14 +207,17 @@ pub fn update_game_state(
             app.game_state_timer = 0.0;
             app.game_state = GameState::In;
             app.is_reset_game = true;
-            //if app.stage_count > value::MAXSTAGE{app_state.set(AppState::Ending);}
         }
     }
 }
 
 pub fn reset_game(
     mut commands: Commands,
-    mut player: Single<(&mut PlayerInfo, &mut Transform, &mut Velocity, &mut ImpulseJoint, Entity), With<PlayerInfo>>,
+    mut player: Single<(&mut PlayerInfo, &mut Transform, &mut Velocity, &mut ImpulseJoint, Entity, &mut Sprite), (With<PlayerInfo>, Without<PlayerParticle>)>,
+    mut player_particle: Query<(&mut RigidBody, &mut Transform, &PlayerParticle), (
+        With<PlayerParticle>, Without<PlayerInfo>, Without<FixedBlock>, Without<GoalCollision>, Without<RopeRoot>
+    )>,
+    mut player_particle_root: Single<&mut Transform, (With<PlayerParticleRoot>, Without<PlayerInfo>, Without<PlayerParticle>, Without<RopeRoot>)>,
     mut root: Single<&mut Transform, (With<RopeRoot>, Without<PlayerInfo>)>,
     mut app: ResMut<MyApp>, 
     mut camera: Single<&mut OrthographicProjection, With<Camera2d>>,
@@ -218,11 +231,18 @@ pub fn reset_game(
     if !app.is_reset_game{return;}
     if app.stage_count > value::MAXSTAGE{app_state.set(AppState::Ending);}
     commands.entity(player.4).remove::<RigidBodyDisabled>();
-    *player.1 = Transform::from_translation(Vec3::new(0.0, 0.0, 0.0,)).with_rotation(Quat::from_vec4(Vec4::new(0.0,0.0,0.0,0.0)));
-    *player.2 = Velocity::zero();
+    player.1.translation = Vec3::new(0.0, 0.0, 0.0);
+    player.5.custom_size = Some(Vec2::new(20.0, 20.0)); 
+    player.2.linvel = Vec2::new(0.0, 0.0);
     root.translation = Vec3::new(0.0, 0.0, 0.0);
     player.3.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
     player.0.is_grab_rope = true;
+    player_particle_root.translation = Vec3::new(0.0, -1000000.0, 10.0);
+    for (mut pr, mut pt, pp) in player_particle.iter_mut(){
+        pt.translation.x = pp.tx;
+        pt.translation.y = pp.ty;
+        *pr = RigidBody::Fixed;
+    }
     
     camera.scale = 1.0;
     for entity in &block_query {
@@ -236,7 +256,7 @@ pub fn reset_game(
     create_block(commands, app.into(), asset_server, materials, meshes);
 }
 
-pub fn camera_update(
+pub fn camera(
     mut camera: Single<(&mut Transform, &mut OrthographicProjection), (With<Camera2d>, Without<PlayerInfo>)>,
     player: Single<&Transform, (With<PlayerInfo>, Without<Camera2d>)>,
     time: Res<Time>,
@@ -351,15 +371,17 @@ pub fn collision_events(
     goal: Single<Entity, With<GoalCollision>>,
     mut app: ResMut<MyApp>,
     mut commands: Commands,
-    player: Single<Entity, With<PlayerInfo>>,
+    mut player: Single<(Entity, &mut Sprite, &Transform), With<PlayerInfo>>,
     mut death_events: EventWriter<DeathEvent>,
+    mut player_particle: Query<(&mut RigidBody, &mut Velocity, &PlayerParticle), (With<PlayerParticle>, Without<PlayerInfo>, Without<GoalCollision>, Without<FixedBlock>)>,
+    mut player_particle_root: Single<&mut Transform, (With<PlayerParticleRoot>, Without<PlayerInfo>)>,
 ){
     if app.game_state != GameState::Play {return;}
     if collision_events.is_empty(){return;}
     for evt in collision_events.read(){
         match evt{
             CollisionEvent::Started(fe, se, _ce) => {
-                let other = match fe.index() == player.index(){
+                let other = match fe.index() == player.0.index(){
                     true => {se},
                     _ => {fe}
                 };
@@ -367,12 +389,19 @@ pub fn collision_events(
                 if res.is_ok(){//ゲームオーバー
                     death_events.send_default();
                     app.game_state = GameState::Out;
-                    commands.entity(*player).insert(RigidBodyDisabled);
+                    commands.entity(player.0).insert(RigidBodyDisabled);
+                    player_particle_root.translation = player.2.translation;
+                    for (mut pr, mut pv, pp) in player_particle.iter_mut(){
+                        *pr = RigidBody::Dynamic;
+                        pv.linvel.x = pp.vx;
+                        pv.linvel.y = pp.vy;
+                    }
+                    player.1.custom_size = Some(Vec2::new(0.0, 0.0));
                 }
                 if goal.index() == other.index(){//クリア
                     app.game_state = GameState::Out;
                     app.stage_count += 1;
-                    commands.entity(*player).insert(RigidBodyDisabled);
+                    commands.entity(player.0).insert(RigidBodyDisabled);
                 }
             },
             _ => {}
@@ -392,8 +421,6 @@ pub fn setup_asset(
     commands.insert_resource(GrabSound(asset_server.load(assets::SOUNDGRAB)));
     commands.insert_resource(DeathSound(asset_server.load(assets::SOUNDDEATH)));
 
-    //app.game_state = GameState::In;
-    //app.is_reset_game = false;
     *app = MyApp::default();
 
     commands.spawn((//カメラ
@@ -412,7 +439,7 @@ pub fn setup_asset(
         true => {"Last Stage".into()},
         _ => {format!("Stage {}",app.stage_count)},
     };
-    commands.spawn((
+    commands.spawn((//ステージ表示テキスト
         Text::new(&stage_text),
         TextFont {
             font: asset_server.load(assets::DEFAULTFONT),
@@ -491,12 +518,13 @@ pub fn setup_asset(
     commands.spawn((
         Sprite{
             color: Color::srgb(0.0, 1.0, 0.0),
-            custom_size: Some(Vec2::new(10.0*2.0, 10.0*2.0)),
+            custom_size: Some(Vec2::new(20.0, 20.0)),
             ..Default::default()
         },
         Transform::from_xyz(0.0, 0.0, 0.0),
         RigidBody::Dynamic,
         ActiveEvents::COLLISION_EVENTS,
+        Visibility::Visible,
         LockedAxes::ROTATION_LOCKED,
         Velocity::zero(),
         Collider::cuboid(4.0, 4.0),
@@ -504,6 +532,42 @@ pub fn setup_asset(
         PlayerInfo::default(),
         ReleaseResource
     ));
+    commands.spawn((
+        Transform::from_xyz(0.0, -1000000.0, 10.0),
+        ReleaseResource,
+        PlayerParticleRoot,
+    )).with_children(|parent|{
+        for x in 0..10{
+            for y in 0..10{
+                let tx = (x as f32 * 2.0) - 9.0;
+                let ty = (y as f32 * 2.0) - 9.0;
+                let range_x = Uniform::new(-1000.0,1000.0);
+                let mut rng_vx = rand::thread_rng();
+                let vx = range_x.sample(&mut rng_vx);
+                let range_y = Uniform::new(0.0,500.0);
+                let mut rng_vy = rand::thread_rng();
+                let vy = range_y.sample(&mut rng_vy);
+                let range_sx = Uniform::new(2.0,5.0);
+                let mut rng_sx = rand::thread_rng();
+                let sx = range_sx.sample(&mut rng_sx);
+                let range_sy = Uniform::new(2.0,5.0);
+                let mut rng_sy = rand::thread_rng();
+                let sy = range_sy.sample(&mut rng_sy);
+                parent.spawn((
+                    Sprite{
+                        color: Color::srgb(0.0, 1.0, 0.0),
+                        custom_size: Some(Vec2::new(sx, sy)),
+                        ..Default::default()
+                    },
+                    RigidBody::Fixed,
+                    Transform::from_xyz(tx, ty, 10.0),
+                    Velocity::zero(),
+                    Collider::cuboid(sx-2.0, sy-2.0),
+                    PlayerParticle{tx: tx, ty: ty, vx: vx, vy: vy},
+                ));
+            }
+        }
+    });
     create_block(commands, app.into(), asset_server, materials, meshes);
 }
 
