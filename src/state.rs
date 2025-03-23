@@ -79,6 +79,10 @@ impl Plugin for StatePlugin {
                 game::update_play_sound,
                 game::update_goal_animation,
                 tutorial::collision_events,
+                tutorial::mouse_move_text,
+                tutorial::mouse_jump_text,
+                tutorial::mouse_grab_text,
+                tutorial::mouse_scroll_text,
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
         .add_systems(OnExit(AppState::Tutorial), despawn)

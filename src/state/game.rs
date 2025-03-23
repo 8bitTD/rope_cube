@@ -19,11 +19,13 @@ pub struct RopeRoot;
 #[derive(Debug, Component)]
 pub struct PlayerInfo{
     pub is_grab_rope: bool,
+    pub grab_time: f32,
 }
 impl Default for PlayerInfo{
     fn default() -> PlayerInfo{
         PlayerInfo { 
             is_grab_rope: true,
+            grab_time: 1.0,
         }
     }
 }

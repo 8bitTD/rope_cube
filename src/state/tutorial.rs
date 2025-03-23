@@ -14,6 +14,73 @@ pub struct SkipButton;
 #[derive(Component)]
 pub struct ResetButton;
 
+#[derive(Component)]
+pub struct MouseMoveText;
+#[derive(Component)]
+pub struct MouseJumpText;
+#[derive(Component)]
+pub struct MouseGrabText;
+#[derive(Component)]
+pub struct MouseScrollText(f32);
+
+pub fn mouse_scroll_text(
+    mut texts: Query<(&mut TextColor, &mut MouseScrollText), With<MouseScrollText>>,
+    mouse_scroll: Res<bevy::input::mouse::AccumulatedMouseScroll>,
+    time: Res<Time>,
+){
+    let mut color = Color::srgb(0.5, 0.5, 0.5);
+    if mouse_scroll.delta.y != 0.0{ 
+        for mut t in texts.iter_mut(){
+            t.1.0 = 0.0;
+        }
+    }
+    for mut t in texts.iter_mut(){
+        t.1.0 += time.delta_secs();
+        if t.1.0 < 0.25{color = Color::srgb(1.0, 1.0, 1.0);}
+        t.0.0 = color;
+    }
+}
+
+
+pub fn mouse_grab_text(
+    mut texts: Query<&mut TextColor, With<MouseGrabText>>,
+    player: Single<&game::PlayerInfo, With<game::PlayerInfo>>,
+){
+    let mut color = Color::srgb(0.5, 0.5, 0.5);
+    if player.is_grab_rope && player.grab_time < 0.5{ 
+        color = Color::srgb(1.0, 1.0, 1.0);
+    }
+    for mut t in texts.iter_mut(){
+        t.0 = color;
+    }
+}
+
+pub fn mouse_jump_text(
+    mut texts: Query<&mut TextColor, With<MouseJumpText>>,
+    player: Single<&game::PlayerInfo, With<game::PlayerInfo>>,
+){
+    let mut color = Color::srgb(1.0, 1.0, 1.0);
+    if player.is_grab_rope { 
+        color = Color::srgb(0.5, 0.5, 0.5);
+    }
+    for mut t in texts.iter_mut(){
+        t.0 = color;
+    }
+}
+
+pub fn mouse_move_text(
+    mut texts: Query<&mut TextColor, With<MouseMoveText>>,
+    player: Single<(&game::PlayerInfo, &Velocity), With<game::PlayerInfo>>,
+){
+    let mut color = Color::srgb(1.0, 1.0, 1.0);
+    if !player.0.is_grab_rope && player.1.linvel != Vec2::new(0.0, 0.0){ 
+        color = Color::srgb(0.5, 0.5, 0.5);
+    }
+    for mut t in texts.iter_mut(){
+        t.0 = color;
+    }
+}
+
 pub fn collision_events(
     mut collision_events: EventReader<CollisionEvent>,
     goal: Single<Entity, With<game::GoalCollision>>,
@@ -46,10 +113,13 @@ pub fn rope_grab(
     mut jump_events: EventWriter<game::JumpEvent>,
     mut grab_events: EventWriter<game::GrabEvent>,
     app: Res<MyApp>,
+    time: Res<Time>,
 ){
+    player.2.grab_time += time.delta_secs();
     if app.is_tutorial_skip_button_hover || app.is_tutorial_reset_button_hover{return;}
     if !mouse_button_input.just_pressed(MouseButton::Left){return;}
     if !player.2.is_grab_rope{
+        player.2.grab_time = 0.0;
         let mut px = player.0.translation.x;
         let mut py = player.0.translation.y;
         px -= player.3.linvel.x * 0.01;
@@ -242,6 +312,7 @@ pub fn setup_asset(
             font_size: 20.0,
             ..default()
         },
+        TextColor(Color::srgb(0.7, 0.7, 0.7)),
         Node {
             position_type: PositionType::Relative,
             align_self: AlignSelf::End,
@@ -250,6 +321,7 @@ pub fn setup_asset(
             bottom: Val::Px(200.0),
             ..default()
         },
+        MouseMoveText,
         ReleaseResource,
     ));
     commands.spawn((//説明テキスト
@@ -259,6 +331,7 @@ pub fn setup_asset(
             font_size: 20.0,
             ..default()
         },
+        TextColor(Color::srgb(0.7, 0.7, 0.7)),
         Node {
             position_type: PositionType::Relative,
             align_self: AlignSelf::End,
@@ -267,6 +340,7 @@ pub fn setup_asset(
             bottom: Val::Px(200.0),
             ..default()
         },
+        MouseMoveText,
         ReleaseResource,
     ));
     
@@ -285,6 +359,7 @@ pub fn setup_asset(
             bottom: Val::Px(170.0),
             ..default()
         },
+        MouseJumpText,
         ReleaseResource,
     ));
     commands.spawn((//説明テキスト
@@ -302,6 +377,7 @@ pub fn setup_asset(
             bottom: Val::Px(170.0),
             ..default()
         },
+        MouseJumpText,
         ReleaseResource,
     ));
 
@@ -320,6 +396,7 @@ pub fn setup_asset(
             bottom: Val::Px(140.0),
             ..default()
         },
+        MouseGrabText,
         ReleaseResource,
     ));
     commands.spawn((//説明テキスト
@@ -337,6 +414,7 @@ pub fn setup_asset(
             bottom: Val::Px(140.0),
             ..default()
         },
+        MouseGrabText,
         ReleaseResource,
     ));
 
@@ -355,6 +433,7 @@ pub fn setup_asset(
             bottom: Val::Px(110.0),
             ..default()
         },
+        MouseScrollText(0.0),
         ReleaseResource,
     ));
     commands.spawn((//説明テキスト
@@ -372,6 +451,7 @@ pub fn setup_asset(
             bottom: Val::Px(110.0),
             ..default()
         },
+        MouseScrollText(0.0),
         ReleaseResource,
     ));
 
