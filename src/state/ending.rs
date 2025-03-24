@@ -133,30 +133,32 @@ pub fn spawn_system(
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
             Transform::from_translation(Vec3::new(0.0, -115.0, 0.0)),
         ));
+
         parent.spawn((
-            Text2d::new(format!("music:")),
+            Text2d::new(format!("number of continues:")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
-                font_size: 20.0,
+                font_size: 30.0,
                 ..default()
             },
             Anchor::CenterRight,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(-offset_x, -170.0, 0.0)),
+            Transform::from_translation(Vec3::new(-offset_x, -155.0, 0.0)),
         ));
         parent.spawn((
-            Text2d::new(format!("魔王魂")),
+            Text2d::new(format!("{}", app.number_of_continues)),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
-                font_size: 20.0,
+                font_size: 30.0,
                 ..default()
             },
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
-            Transform::from_translation(Vec3::new(0.0, -170.0, 0.0)),
+            Transform::from_translation(Vec3::new(0.0, -155.0, 0.0)),
         ));
+
         parent.spawn((
-            Text2d::new(format!("sound:")),
+            Text2d::new(format!("music:")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 20.0,
@@ -167,7 +169,7 @@ pub fn spawn_system(
             Transform::from_translation(Vec3::new(-offset_x, -200.0, 0.0)),
         ));
         parent.spawn((
-            Text2d::new(format!("FC音工場")),
+            Text2d::new(format!("魔王魂")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 20.0,
@@ -176,6 +178,28 @@ pub fn spawn_system(
             Anchor::CenterLeft,
             MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
             Transform::from_translation(Vec3::new(0.0, -200.0, 0.0)),
+        ));
+        parent.spawn((
+            Text2d::new(format!("sound:")),
+            TextFont {
+                font: asset_server.load(assets::DEFAULTFONT),
+                font_size: 20.0,
+                ..default()
+            },
+            Anchor::CenterRight,
+            MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
+            Transform::from_translation(Vec3::new(-offset_x, -230.0, 0.0)),
+        ));
+        parent.spawn((
+            Text2d::new(format!("FC音工場")),
+            TextFont {
+                font: asset_server.load(assets::DEFAULTFONT),
+                font_size: 20.0,
+                ..default()
+            },
+            Anchor::CenterLeft,
+            MeshMaterial2d(materials.add(Color::from(basic::WHITE))),
+            Transform::from_translation(Vec3::new(0.0, -230.0, 0.0)),
         ));
     });
     commands.spawn((
@@ -186,7 +210,7 @@ pub fn spawn_system(
             ..default()
         },
         TextColor(Color::srgba(1.0,1.0,1.0,0.0)),
-        Transform::from_translation(Vec3::new(0.0, -120.0, 0.0)),
+        Transform::from_translation(Vec3::new(0.0, -150.0, 0.0)),
         ClickText,
         ReleaseResource,
     ));
@@ -196,7 +220,7 @@ pub fn update_debug(
     mut app_state: ResMut<NextState<AppState>>,
     keyboard_input:  Res<ButtonInput<KeyCode>>,
 ) {
-    if !value::ISDEBUG{return;}
+    if !debug::ISDEBUG{return;}
     if keyboard_input.just_pressed(KeyCode::F2){
         app_state.set(AppState::Game);
     }

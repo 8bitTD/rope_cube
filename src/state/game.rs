@@ -150,7 +150,7 @@ pub fn update_fade_stage_text(
     if app.text_stage_alpha <= -1.0{return;}
     for mut t in text_query.iter_mut(){
         if app.text_stage_alpha == value::DEFAULTTEXTSTAGEALPHA  &&  t.2.font_size == 100.0{
-            t.0.0 =  match app.stage_count == value::MAXSTAGE {
+            t.0.0 =  match app.stage_count == debug::MAXSTAGE {
                 true => {"Last Stage".into()},
                 _ => {format!("Stage {}",app.stage_count)},
             };
@@ -254,7 +254,7 @@ pub fn reset_game(
     mut app_state: ResMut<NextState<AppState>>,
 ){
     if !app.is_reset_game{return;}
-    if app.stage_count > value::MAXSTAGE{app_state.set(AppState::Ending);}
+    if app.stage_count > debug::MAXSTAGE{app_state.set(AppState::Ending);}
     commands.entity(player.4).remove::<RigidBodyDisabled>();
     player.1.translation = Vec3::new(0.0, 0.0, 0.0);
     player.5.custom_size = Some(Vec2::new(20.0, 20.0)); 
@@ -300,7 +300,7 @@ pub fn camera(
             camera.0.translation += sa;
             if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
             let delta = accumulated_mouse_scroll.delta;
-            camera.1.scale -= match value::ISDEBUG{
+            camera.1.scale -= match debug::ISDEBUG{
                 true => delta.y * ds * system::FPS,
                 _ => delta.y * ds * 0.25,
             };
@@ -345,7 +345,7 @@ pub fn debug(
     time: Res<Time>,
     mut app: ResMut<MyApp>,
 ){
-    if !value::ISDEBUG{return;}
+    if !debug::ISDEBUG{return;}
     let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
     let down = keyboard_input.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]);
     let left = keyboard_input.any_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]);
@@ -426,6 +426,7 @@ pub fn collision_events(
                         pv.linvel.y = pp.vy;
                     }
                     player.1.custom_size = Some(Vec2::new(0.0, 0.0));
+                    app.number_of_continues += 1;
                 }
                 if goal.index() == other.index(){//クリア
                     app.game_state = GameState::Out;
@@ -467,7 +468,7 @@ pub fn setup_asset(
         ReleaseResource,
     ));
     
-    let stage_text = match app.stage_count == value::MAXSTAGE{
+    let stage_text = match app.stage_count == debug::MAXSTAGE{
         true => {"Last Stage".into()},
         _ => {format!("Stage {}",app.stage_count)},
     };
@@ -488,6 +489,25 @@ pub fn setup_asset(
         StageText,
         ReleaseResource,
     ));
+
+    commands.spawn((
+        Text::new(format!("(Total {} Stages)", debug::MAXSTAGE)),
+        TextFont {
+            font: asset_server.load(assets::DEFAULTFONT),
+            font_size: 50.0,
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::Center,
+            justify_self: JustifySelf::Center,
+            top: Val::Px(-55.0),
+            ..default()
+        },
+        StageText,
+        ReleaseResource,
+    ));
+
     commands.spawn((//バージョン表記
         Text::new(env!("CARGO_PKG_VERSION")),
         TextFont {
@@ -609,6 +629,8 @@ pub fn create_block(
 ){
     let stage = Stage::new_stage(app.stage_count);
     for b in stage.blocks{//ブロック作成
+        let mut tfm = Transform::from(Transform::from_xyz(b.px, b.py, 0.0));
+        tfm.rotate_z(b.degree.to_radians());
         commands.spawn((
             Sprite{
                 color: Color::srgb(0.1, 0.1, 0.1),
@@ -616,7 +638,8 @@ pub fn create_block(
                 ..Default::default()
             },
             Collider::cuboid(b.sx, b.sy),
-            Transform::from(Transform::from_xyz(b.px, b.py, 0.0)),
+            //Transform::from(Transform::from_xyz(b.px, b.py, 0.0)),
+            tfm,
             FixedBlock,
             ReleaseResource
         ));
@@ -638,7 +661,7 @@ pub fn create_block(
             MeshMaterial2d(materials.add(Color::srgb(0.0, 1.0, 0.0))),
             GoalBlock,
         ));
-        let goal_or_next = match app.stage_count == value::MAXSTAGE{
+        let goal_or_next = match app.stage_count == debug::MAXSTAGE{
             true => {"GOAL!"},
             _ => {"NEXT!"},
         };

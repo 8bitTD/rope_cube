@@ -11,12 +11,12 @@ mod stage;
 fn main() {
     
     let mut rp = RapierDebugRenderPlugin::default();
-    rp.enabled = define::value::RAPIERDEBUGRENDERPLUGINENABLED;
-    let px = match define::value::ISDEBUG{
+    rp.enabled = define::debug::RAPIERDEBUGRENDERPLUGINENABLED;
+    let px = match define::debug::ISDEBUG{
         true => {-1700},
         _ => {0}
     };
-    let res = match define::value::ISDEBUG{
+    let res = match define::debug::ISDEBUG{
         true => (1500.0, 900.0),
         _ => (1920.0, 1080.0)
     };

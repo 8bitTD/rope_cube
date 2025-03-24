@@ -24,9 +24,13 @@ pub mod value{
     pub const VOLUME: f32 = 0.05; //0.05
     pub const FADETIME: f32 = 1.0;
     pub const DEFAULTTEXTSTAGEALPHA: f32 = 3.0;
-    pub const STARTSTAGE: usize = 1;
-    pub const MAXSTAGE: usize = 4;
     pub const ENDINGTEXTMOVE: f32 = 130.0;
-    pub const RAPIERDEBUGRENDERPLUGINENABLED: bool = false;
-    pub const ISDEBUG: bool = false;
+}
+
+pub mod debug{
+    pub const STARTSTAGE: usize = 1;//スタートステージ
+    pub const MAXSTAGE: usize = 5;//最大ステージ数
+    pub const RAPIERDEBUGRENDERPLUGINENABLED: bool = false;//物理のガイド表示
+    pub const ISSKIPTUTORIAL: bool = false;//チュートリアルスキップ
+    pub const ISDEBUG: bool = false;//デバッグモード
 }

@@ -18,11 +18,12 @@ pub struct MyApp{
     pub is_ending_end: bool,
     pub is_tutorial_skip_button_hover: bool,
     pub is_tutorial_reset_button_hover: bool,
+    pub number_of_continues: usize,
 }
 impl Default for MyApp{
     fn default() -> MyApp{
         MyApp { 
-            stage_count: value::STARTSTAGE,
+            stage_count: debug::STARTSTAGE,
             game_state: GameState::In,
             game_state_timer: 0.0,
             joint_distance: 100.0, 
@@ -34,6 +35,7 @@ impl Default for MyApp{
             is_ending_end: false,
             is_tutorial_skip_button_hover: false,
             is_tutorial_reset_button_hover: false,
+            number_of_continues: 0,
         }
     }
 }
@@ -84,6 +86,7 @@ impl Plugin for StatePlugin {
                 tutorial::mouse_grab_text,
                 tutorial::mouse_scroll_text,
                 tutorial::check_player_position,
+                tutorial::blink_figure,
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
         .add_systems(OnExit(AppState::Tutorial), despawn)
@@ -125,6 +128,6 @@ pub fn despawn(
     query: Query<Entity, With<ReleaseResource>>,
 ){
     for entity in &mut query.iter() {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).try_despawn_recursive();
     }
 }

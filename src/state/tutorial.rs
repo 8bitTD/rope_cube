@@ -23,6 +23,24 @@ pub struct MouseGrabText;
 #[derive(Component)]
 pub struct MouseScrollText(f32);
 
+#[derive(Component)]
+pub struct GrabBlinkFigure(bool);
+
+pub fn blink_figure(
+    player: Single<&game::PlayerInfo, With<game::PlayerInfo>>,
+    mut blink: Single<(&mut GrabBlinkFigure, &mut Visibility), With<GrabBlinkFigure>>,
+){
+    if player.is_grab_rope{
+        *blink.1 = Visibility::Hidden;
+        return;
+    }
+    blink.0.0 = !blink.0.0;
+    match blink.0.0{
+        true => *blink.1 = Visibility::Visible,
+        _ => *blink.1 = Visibility::Hidden,
+    };
+}
+
 pub fn check_player_position(
     mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity, &mut Transform) ,(With<game::PlayerInfo>, Without<game::RopeRoot>)>,
     mut rope_root: Single<(&mut Transform, &mut Visibility), (With<game::RopeRoot>, Without<game::PlayerInfo>)>,
@@ -154,14 +172,13 @@ pub fn camera(
     player: Single<&Transform, (With<game::PlayerInfo>, Without<Camera2d>)>,
     time: Res<Time>,
     accumulated_mouse_scroll: Res<bevy::input::mouse::AccumulatedMouseScroll>,
-    //app: Res<MyApp>,
 ){
     let ds = time.delta_secs();
     let sa = (player.translation - camera.0.translation) * ds * system::FPS*0.05;
     camera.0.translation += sa;
     if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
     let delta = accumulated_mouse_scroll.delta;
-    camera.1.scale -= match value::ISDEBUG{
+    camera.1.scale -= match debug::ISDEBUG{
         true => delta.y * ds * system::FPS,
         _ => delta.y * ds * 0.25,
     };
@@ -197,7 +214,6 @@ pub fn push_reset_button(
     mut rope_root: Single<(&mut Transform, &mut Visibility), With<game::RopeRoot>>,
     mut app: ResMut<MyApp>,
     mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity) ,With<game::PlayerInfo>>,
-    //mut enter_events: EventWriter<game::EnterEvent>,
 ){
     match button.0{
         Interaction::Hovered => {
@@ -225,12 +241,15 @@ pub fn setup_asset(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     app: Res<MyApp>,
+    mut app_state: ResMut<NextState<AppState>>,
 ) {
     commands.insert_resource(ClearColor(Color::srgb(0.175, 0.175, 0.175)));
     commands.insert_resource(game::JumpSound(asset_server.load(assets::SOUNDJUMP)));
     commands.insert_resource(game::GrabSound(asset_server.load(assets::SOUNDGRAB)));
     commands.insert_resource(game::DeathSound(asset_server.load(assets::SOUNDDEATH)));
     commands.insert_resource(game::EnterSound(asset_server.load(assets::SOUNDENTER)));
+
+    if debug::ISSKIPTUTORIAL{ app_state.set(AppState::Game); }
 
     commands.spawn((//カメラ
         Camera2d::default(),
@@ -393,6 +412,24 @@ pub fn setup_asset(
         ReleaseResource,
     ));
 
+    commands.spawn((
+        Node {
+            position_type: PositionType::Relative,
+            align_self: AlignSelf::End,
+            justify_self: JustifySelf::Center,
+            left: Val::Px(-108.0),
+            bottom: Val::Px(137.0),
+            width: Val::Px(450.0),
+            height: Val::Px(25.0),
+            //border: UiRect::px(-10.0, -10.0, -10.0, -10.0),
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 1.0)),
+        Visibility::Hidden,
+        GrabBlinkFigure(false),
+        ReleaseResource,
+    ));
+
     commands.spawn((//説明テキスト
         Text::new("When jumping, mouse left-click:"),
         TextFont {
@@ -549,7 +586,7 @@ pub fn setup_asset(
             MeshMaterial2d(materials.add(Color::srgb(0.0, 1.0, 0.0))),
             game::GoalBlock,
         ));
-        let goal_or_next = match app.stage_count == value::MAXSTAGE{
+        let goal_or_next = match app.stage_count == debug::MAXSTAGE{
             _ => {"NEXT!"},
         };
         for (u, c) in goal_or_next.chars().enumerate(){
