@@ -109,7 +109,7 @@ pub fn collision_events(
 pub fn rope_grab(
     mut player: Single<(&Transform, &mut ImpulseJoint, &mut game::PlayerInfo, &mut Velocity), (With<game::PlayerInfo>, Without<game::RopeRoot>)>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
-    mut root: Single<&mut Transform, With<game::RopeRoot>>,
+    mut root: Single<(&mut Transform, &mut Visibility), With<game::RopeRoot>>,
     mut jump_events: EventWriter<game::JumpEvent>,
     mut grab_events: EventWriter<game::GrabEvent>,
     app: Res<MyApp>,
@@ -124,13 +124,15 @@ pub fn rope_grab(
         let mut py = player.0.translation.y;
         px -= player.3.linvel.x * 0.01;
         py -= player.3.linvel.y * 0.01;
-        root.translation = Vec3::new(px, py, 0.0);
+        root.0.translation = Vec3::new(px, py, 0.0);
+        *root.1 = Visibility::Visible;
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
         grab_events.send_default();
         player.2.is_grab_rope = true;
     }else{
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Disabled;
         jump_events.send_default();
+        *root.1 = Visibility::Hidden;
         player.2.is_grab_rope = false;
     }
 }
@@ -180,7 +182,7 @@ pub fn push_skip_button(
 
 pub fn push_reset_button(
     mut button: Single<(&Interaction, &Button, &mut BackgroundColor), With<ResetButton>>,
-    mut rope_root: Single<&mut Transform, With<game::RopeRoot>>,
+    mut rope_root: Single<(&mut Transform, &mut Visibility), With<game::RopeRoot>>,
     mut app: ResMut<MyApp>,
     mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity) ,With<game::PlayerInfo>>,
     //mut enter_events: EventWriter<game::EnterEvent>,
@@ -195,8 +197,8 @@ pub fn push_reset_button(
             player.0.is_grab_rope = true;
             player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
             player.2.linvel = Vec2::new(0.0, 0.0);
-            rope_root.translation = Vec3::new(0.0, 0.0, 0.0);
-            //enter_events.send_default();
+            rope_root.0.translation = Vec3::new(0.0, 0.0, 0.0);
+            *rope_root.1 = Visibility::Visible;
         },
         _ => {
             button.2.0 = Color::srgb(0.25, 0.25, 0.25);
@@ -217,8 +219,6 @@ pub fn setup_asset(
     commands.insert_resource(game::GrabSound(asset_server.load(assets::SOUNDGRAB)));
     commands.insert_resource(game::DeathSound(asset_server.load(assets::SOUNDDEATH)));
     commands.insert_resource(game::EnterSound(asset_server.load(assets::SOUNDENTER)));
-
-    //*app = MyApp::default();
 
     commands.spawn((//カメラ
         Camera2d::default(),
@@ -482,6 +482,7 @@ pub fn setup_asset(
         RigidBody::Fixed,
         Velocity::zero(),
         Collider::cuboid(2.0, 2.0),
+        Visibility::Visible,
         game::RopeRoot,
         ReleaseResource
     )).with_children(|parent|{

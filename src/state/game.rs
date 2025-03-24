@@ -165,7 +165,7 @@ pub fn update_fade_stage_text(
 }
 
 pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
-    player: Single<(&Transform, &PlayerInfo), (With<PlayerInfo>, Without<RopeAngle>, Without<RopeSprite>, Without<RopeRoot>)>,
+    player: Single<(&Transform, &PlayerInfo, &Velocity), (With<PlayerInfo>, Without<RopeAngle>, Without<RopeSprite>, Without<RopeRoot>)>,
     rope_root: Single<&Transform, (With<RopeRoot>, Without<RopeSprite>, Without<RopeAngle>, Without<PlayerInfo>)>,
     mut rope_angle: Single<&mut Transform, (With<RopeAngle>, Without<RopeSprite>, Without<RopeRoot>,Without<PlayerInfo>)>,
     mut rope_sprite: Single<(&mut Sprite, &mut Transform, &mut Visibility), (With<RopeSprite>, Without<RopeAngle>, Without<RopeRoot>, Without<PlayerInfo>)>,
@@ -240,7 +240,7 @@ pub fn reset_game(
         With<PlayerParticle>, Without<PlayerInfo>, Without<FixedBlock>, Without<GoalCollision>, Without<RopeRoot>
     )>,
     mut player_particle_root: Single<&mut Transform, (With<PlayerParticleRoot>, Without<PlayerInfo>, Without<PlayerParticle>, Without<RopeRoot>)>,
-    mut root: Single<&mut Transform, (With<RopeRoot>, Without<PlayerInfo>)>,
+    mut root: Single<(&mut Transform, &mut Visibility), (With<RopeRoot>, Without<PlayerInfo>)>,
     mut app: ResMut<MyApp>, 
     mut camera: Single<&mut OrthographicProjection, With<Camera2d>>,
     asset_server: Res<AssetServer>,
@@ -256,7 +256,8 @@ pub fn reset_game(
     player.1.translation = Vec3::new(0.0, 0.0, 0.0);
     player.5.custom_size = Some(Vec2::new(20.0, 20.0)); 
     player.2.linvel = Vec2::new(0.0, 0.0);
-    root.translation = Vec3::new(0.0, 0.0, 0.0);
+    root.0.translation = Vec3::new(0.0, 0.0, 0.0);
+    *root.1 = Visibility::Visible;
     player.3.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
     player.0.is_grab_rope = true;
     player_particle_root.translation = Vec3::new(0.0, -1000000.0, 10.0);
@@ -309,7 +310,7 @@ pub fn camera(
 pub fn rope_grab(
     mut player: Single<(&Transform, &mut ImpulseJoint, &mut PlayerInfo, &mut Velocity), (With<PlayerInfo>, Without<RopeRoot>)>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
-    mut root: Single<&mut Transform, With<RopeRoot>>,
+    mut root: Single<(&mut Transform, &mut Visibility), With<RopeRoot>>,
     mut app: ResMut<MyApp>,
     mut jump_events: EventWriter<JumpEvent>,
     mut grab_events: EventWriter<GrabEvent>,
@@ -321,7 +322,8 @@ pub fn rope_grab(
         let mut py = player.0.translation.y;
         px -= player.3.linvel.x * 0.01;
         py -= player.3.linvel.y * 0.01;
-        root.translation = Vec3::new(px, py, 0.0);
+        root.0.translation = Vec3::new(px, py, 0.0);
+        *root.1 = Visibility::Visible;
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
         app.grab_count += 1;
         grab_events.send_default();
@@ -329,6 +331,7 @@ pub fn rope_grab(
     }else{
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Disabled;
         jump_events.send_default();
+        *root.1 = Visibility::Hidden;
         player.2.is_grab_rope = false;
     }
 }
@@ -518,6 +521,7 @@ pub fn setup_asset(
         RigidBody::Fixed,
         Velocity::zero(),
         Collider::cuboid(2.0, 2.0),
+        Visibility::Visible,
         RopeRoot,
         ReleaseResource
     )).with_children(|parent|{
