@@ -135,7 +135,7 @@ pub fn spawn_system(
         ));
 
         parent.spawn((
-            Text2d::new(format!("number of continues:")),
+            Text2d::new(format!("continue:")),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 30.0,

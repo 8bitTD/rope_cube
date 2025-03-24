@@ -29,7 +29,7 @@ impl Default for MyApp{
             joint_distance: 100.0, 
             is_reset_game: false,
             text_stage_alpha: value::DEFAULTTEXTSTAGEALPHA,
-            is_clear: false,
+            is_clear: debug::ISCLEAR,
             timer: 0.0,
             grab_count: 0,
             is_ending_end: false,
