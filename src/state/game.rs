@@ -169,6 +169,7 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
     rope_root: Single<&Transform, (With<RopeRoot>, Without<RopeSprite>, Without<RopeAngle>, Without<PlayerInfo>)>,
     mut rope_angle: Single<&mut Transform, (With<RopeAngle>, Without<RopeSprite>, Without<RopeRoot>,Without<PlayerInfo>)>,
     mut rope_sprite: Single<(&mut Sprite, &mut Transform, &mut Visibility), (With<RopeSprite>, Without<RopeAngle>, Without<RopeRoot>, Without<PlayerInfo>)>,
+    app: Res<MyApp>,
 ){
     if player.1.is_grab_rope{ *rope_sprite.2 = Visibility::Visible;}
     else{ *rope_sprite.2 = Visibility::Hidden;}
@@ -179,7 +180,9 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
     let val = say.atan2(sax) - 1.5708;
     rope_angle.rotation = Quat::from_rotation_z(val);
     let distance = ((pp.x - rp.x).powi(2) + (pp.y - rp.y).powi(2)).sqrt();
-    rope_sprite.0.custom_size = Some(Vec2::new(1.0,distance));
+    //rope_sprite.0.custom_size = Some(Vec2::new(2.0,distance));
+    rope_sprite.1.scale.x = 2.0;
+    rope_sprite.1.scale.y = distance / app.joint_distance;
     rope_sprite.1.translation.y = distance * 0.5;
 }
 
@@ -510,35 +513,31 @@ pub fn setup_asset(
         },
         ReleaseResource
     ));
-    
+    let col = Color::srgb(0.75, 0.50, 0.25);
     let root = commands.spawn((//ロープの根元部分
-        Sprite{
-            color: Color::srgb(1.0, 0.5, 0.0),
-            custom_size: Some(Vec2::new(5.0, 5.0)),
-            ..Default::default()
-        },
+        Mesh2d(meshes.add(Circle::new(2.5))),
+        MeshMaterial2d(materials.add(col)),
         Transform::from_xyz(0.0, 0.0, 0.0),
         RigidBody::Fixed,
         Velocity::zero(),
         Collider::cuboid(2.0, 2.0),
         Visibility::Visible,
-        RopeRoot,
+        game::RopeRoot,
         ReleaseResource
     )).with_children(|parent|{
         parent.spawn((
- 
             Transform::from_xyz(0.0, 0.0, 0.0),
-            RopeAngle,
+            game::RopeAngle,
         )).with_children(|parent2|{
             parent2.spawn((
                 Sprite{
-                    color: Color::srgb(0.5, 0.5, 0.5),
-                    custom_size: Some(Vec2::new(2.0,10.0)),
+                    color: col,
+                    custom_size: Some(Vec2::new(1.0,app.joint_distance)),
                     ..Default::default()
                 },
                 Transform::from_xyz(0.0, 0.0, -10.0),
                 Visibility::Visible,
-                RopeSprite
+                game::RopeSprite
             ));
         });
     }).id();

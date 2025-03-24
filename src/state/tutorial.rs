@@ -483,13 +483,10 @@ pub fn setup_asset(
         },
         ReleaseResource,
     ));
-
+    let col = Color::srgb(0.75, 0.50, 0.25);
     let root = commands.spawn((//ロープの根元部分
-        Sprite{
-            color: Color::srgb(1.0, 0.5, 0.0),
-            custom_size: Some(Vec2::new(5.0, 5.0)),
-            ..Default::default()
-        },
+        Mesh2d(meshes.add(Circle::new(2.5))),
+        MeshMaterial2d(materials.add(col)),
         Transform::from_xyz(0.0, 0.0, 0.0),
         RigidBody::Fixed,
         Velocity::zero(),
@@ -504,8 +501,8 @@ pub fn setup_asset(
         )).with_children(|parent2|{
             parent2.spawn((
                 Sprite{
-                    color: Color::srgb(0.5, 0.5, 0.5),
-                    custom_size: Some(Vec2::new(2.0,10.0)),
+                    color: col,
+                    custom_size: Some(Vec2::new(1.0,app.joint_distance)),
                     ..Default::default()
                 },
                 Transform::from_xyz(0.0, 0.0, -10.0),

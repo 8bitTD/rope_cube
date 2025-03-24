@@ -29,8 +29,8 @@ fn main() {
                     resolution: (res.0, res.1).into(),
                     transparent: true,
                     decorations: true,
-                    //mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                     present_mode: PresentMode::AutoNoVsync, 
+                    //present_mode: PresentMode::AutoVsync,
                     prevent_default_event_handling: false,
                     fit_canvas_to_parent: true,
                     ..default()
