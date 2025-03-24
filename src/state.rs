@@ -83,6 +83,7 @@ impl Plugin for StatePlugin {
                 tutorial::mouse_jump_text,
                 tutorial::mouse_grab_text,
                 tutorial::mouse_scroll_text,
+                tutorial::check_player_position,
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
         .add_systems(OnExit(AppState::Tutorial), despawn)

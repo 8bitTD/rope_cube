@@ -23,6 +23,18 @@ pub struct MouseGrabText;
 #[derive(Component)]
 pub struct MouseScrollText(f32);
 
+pub fn check_player_position(
+    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity, &mut Transform) ,(With<game::PlayerInfo>, Without<game::RopeRoot>)>,
+    mut rope_root: Single<(&mut Transform, &mut Visibility), (With<game::RopeRoot>, Without<game::PlayerInfo>)>,
+){
+    if player.3.translation.y > -2000.0{return;}
+    player.0.is_grab_rope = true;
+    player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
+    player.2.linvel = Vec2::new(0.0, 0.0);
+    rope_root.0.translation = Vec3::new(0.0, 0.0, 0.0);
+    *rope_root.1 = Visibility::Visible;
+}
+
 pub fn mouse_scroll_text(
     mut texts: Query<(&mut TextColor, &mut MouseScrollText), With<MouseScrollText>>,
     mouse_scroll: Res<bevy::input::mouse::AccumulatedMouseScroll>,
