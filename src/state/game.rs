@@ -478,8 +478,8 @@ pub fn setup_player(
             ));
         });
     }).id();
-    let joint = RopeJointBuilder::new(value::DEFAULTJOINTDISTANCE * 1.10)
-        .set_motor(0.0, 0.0, 15.0, 0.25)
+    let joint = RopeJointBuilder::new(value::DEFAULTJOINTDISTANCE * 1.05)
+        .set_motor(0.0, 0.0, 10.0, 0.0)
         //.max_distance(100.0)
         //.motor_model(MotorModel::ForceBased)
         //.set_motor(0.0, 0.0, 30.0, 1.0)
