@@ -5,6 +5,7 @@ use bevy::{
 use bevy_rapier2d::prelude::*;
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 mod define;
+mod fps;
 mod state;
 mod stage;
 
@@ -52,5 +53,6 @@ fn main() {
         ))
         //.add_plugins(WorldInspectorPlugin::new())
         .add_plugins(state::StatePlugin)
+        .add_plugins(fps::FPSPlugin::new(1))
         .run();
 }
