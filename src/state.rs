@@ -71,6 +71,7 @@ impl Plugin for StatePlugin {
         .add_event::<game::DeathEvent>()
         .add_event::<game::EnterEvent>()
         .add_systems(OnEnter(AppState::Tutorial), tutorial::setup_asset)
+        .add_systems(PreUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Tutorial)))
         .add_systems(Update,
             (
                 game::update_gismo,
@@ -86,20 +87,19 @@ impl Plugin for StatePlugin {
                 tutorial::mouse_jump_text,
                 tutorial::mouse_grab_text,
                 tutorial::mouse_scroll_text,
-                tutorial::check_player_position,
                 tutorial::blink_figure,
+                tutorial::check_player_position
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
-        .add_systems(PostUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Tutorial)))
         .add_systems(OnExit(AppState::Tutorial), despawn)
         .add_systems(OnEnter(AppState::Game), game::setup_asset)
+        .add_systems(PreUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Game)))
         .add_systems(Update, 
             (
                 game::update_fade_stage_text,
                 game::update_gismo,
                 game::player_move,
                 game::rope_grab,
-                //game::rope_angle_animation,
                 game::camera,
                 game::collision_events,
                 game::reset_game,
@@ -109,9 +109,7 @@ impl Plugin for StatePlugin {
                 game::debug,
             ).chain().run_if(in_state(AppState::Game)),
         )
-        .add_systems(PostUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Game)))
         .add_systems(OnExit(AppState::Game), despawn)
-        
         .add_systems(OnEnter(AppState::Ending), ending::spawn_system)
         .add_systems(Update, 
             (

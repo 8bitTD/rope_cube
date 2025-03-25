@@ -48,8 +48,9 @@ pub fn blink_figure(
 }
 
 pub fn check_player_position(
-    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity, &mut Transform) ,(With<game::PlayerInfo>, Without<game::RopeRoot>)>,
-    mut rope_root: Single<(&mut Transform, &mut Visibility), (With<game::RopeRoot>, Without<game::PlayerInfo>)>,
+    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity, &mut Transform) ,(With<game::PlayerInfo>, Without<game::RopeRoot>, Without<Camera2d>)>,
+    mut rope_root: Single<(&mut Transform, &mut Visibility), (With<game::RopeRoot>, Without<game::PlayerInfo>, Without<Camera2d>)>,
+    mut camera: Single<&mut Transform, (With<Camera2d>, Without<game::PlayerInfo>)>,
 ){
     if player.3.translation.y > -2000.0{return;}
     player.0.is_grab_rope = true;
@@ -57,6 +58,7 @@ pub fn check_player_position(
     player.2.linvel = Vec2::new(0.0, 0.0);
     rope_root.0.translation = Vec3::new(0.0, 0.0, 0.0);
     *rope_root.1 = Visibility::Visible;
+    camera.translation = Vec3::new(0.0, 0.0, 0.0);
 }
 
 pub fn mouse_scroll_text(
