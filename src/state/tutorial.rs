@@ -37,9 +37,9 @@ pub fn blink_figure(
         return;
     }
     app.tutorial_grab_blink_timer += time.delta_secs();
-    if app.tutorial_grab_blink_timer > value::BLINKTIMER{
+    if app.tutorial_grab_blink_timer > value::TUTORIALBLINKTIMER{
         blink.0.0 = !blink.0.0;
-        app.tutorial_grab_blink_timer = app.tutorial_grab_blink_timer - value::BLINKTIMER;
+        app.tutorial_grab_blink_timer = app.tutorial_grab_blink_timer - value::TUTORIALBLINKTIMER;
     }
     match blink.0.0{
         true => *blink.1 = Visibility::Visible,
@@ -109,10 +109,20 @@ pub fn mouse_jump_text(
 pub fn mouse_move_text(
     mut texts: Query<&mut TextColor, With<MouseMoveText>>,
     player: Single<(&game::PlayerInfo, &Velocity), With<game::PlayerInfo>>,
+    accumulated_mouse_motion: Res<bevy::input::mouse::AccumulatedMouseMotion>,
+    mut app: ResMut<MyApp>,
+    time: Res<Time>,
 ){
     let mut color = Color::srgb(1.0, 1.0, 1.0);
-    if !player.0.is_grab_rope && player.1.linvel != Vec2::new(0.0, 0.0){ 
+    if !player.0.is_grab_rope { 
         color = Color::srgb(0.5, 0.5, 0.5);
+        app.tutorial_mouse_move_timer = 0.0; 
+    }else{
+        if accumulated_mouse_motion.delta == Vec2::ZERO{ app.tutorial_mouse_move_timer += time.delta_secs(); }
+        else                                           { app.tutorial_mouse_move_timer = 0.0; }
+        if app.tutorial_mouse_move_timer > value::TUTORIALMOUSEMOVETIMER{
+            color = Color::srgb(0.5, 0.5, 0.5);
+        }
     }
     for mut t in texts.iter_mut(){
         t.0 = color;

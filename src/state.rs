@@ -19,6 +19,7 @@ pub struct MyApp{
     pub is_tutorial_skip_button_hover: bool,
     pub is_tutorial_reset_button_hover: bool,
     pub tutorial_grab_blink_timer: f32,
+    pub tutorial_mouse_move_timer: f32,
     pub continues: usize,
 }
 impl Default for MyApp{
@@ -37,6 +38,7 @@ impl Default for MyApp{
             is_tutorial_skip_button_hover: false,
             is_tutorial_reset_button_hover: false,
             tutorial_grab_blink_timer: 0.0,
+            tutorial_mouse_move_timer: 0.0,
             continues: 0,
         }
     }

@@ -25,7 +25,8 @@ pub mod value{
     pub const FADETIME: f32 = 1.0;
     pub const DEFAULTTEXTSTAGEALPHA: f32 = 3.0;
     pub const ENDINGTEXTMOVE: f32 = 130.0;
-    pub const BLINKTIMER: f32 = 0.1;
+    pub const TUTORIALBLINKTIMER: f32 = 0.1;
+    pub const TUTORIALMOUSEMOVETIMER: f32 = 0.2;
 }
 
 pub mod debug{
