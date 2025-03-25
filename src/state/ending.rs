@@ -146,7 +146,7 @@ pub fn spawn_system(
             Transform::from_translation(Vec3::new(-offset_x, -155.0, 0.0)),
         ));
         parent.spawn((
-            Text2d::new(format!("{}", app.number_of_continues)),
+            Text2d::new(format!("{}", app.continues)),
             TextFont {
                 font: asset_server.load(assets::DEFAULTFONT),
                 font_size: 30.0,

@@ -29,12 +29,18 @@ pub struct GrabBlinkFigure(bool);
 pub fn blink_figure(
     player: Single<&game::PlayerInfo, With<game::PlayerInfo>>,
     mut blink: Single<(&mut GrabBlinkFigure, &mut Visibility), With<GrabBlinkFigure>>,
+    mut app: ResMut<MyApp>,
+    time: Res<Time>,
 ){
     if player.is_grab_rope{
         *blink.1 = Visibility::Hidden;
         return;
     }
-    blink.0.0 = !blink.0.0;
+    app.tutorial_grab_blink_timer += time.delta_secs();
+    if app.tutorial_grab_blink_timer > value::BLINKTIMER{
+        blink.0.0 = !blink.0.0;
+        app.tutorial_grab_blink_timer = app.tutorial_grab_blink_timer - value::BLINKTIMER;
+    }
     match blink.0.0{
         true => *blink.1 = Visibility::Visible,
         _ => *blink.1 = Visibility::Hidden,

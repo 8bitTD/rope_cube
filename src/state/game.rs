@@ -178,11 +178,10 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
     let pv = player.2.linvel * time.delta_secs();
     let rp = rope_root.translation;
     let sax = pp.x + pv.x - rp.x;
-    let say = pp.y + pv.x - rp.y;
+    let say = pp.y + pv.y - rp.y;
     let val = say.atan2(sax) - 1.5708;
     rope_angle.rotation = Quat::from_rotation_z(val);
     let distance = ((pp.x - rp.x).powi(2) + (pp.y - rp.y).powi(2)).sqrt();
-    //rope_sprite.0.custom_size = Some(Vec2::new(2.0,distance));
     rope_sprite.1.scale.x = 2.0;
     rope_sprite.1.scale.y = distance / app.joint_distance;
     rope_sprite.1.translation.y = distance * 0.5;
@@ -371,9 +370,9 @@ pub fn player_move(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut app: ResMut<MyApp>,
 ){
+    app.timer += time.delta_secs();
     if q_windows.single().cursor_position().is_none(){return;}
     if !player.1.is_grab_rope{return;}
-    app.timer += time.delta_secs();
     let ws = q_windows.single().size();
     let mut m_pos = q_windows.single().cursor_position().unwrap();
     m_pos.x -= ws.x * 0.5;
@@ -428,7 +427,7 @@ pub fn collision_events(
                         pv.linvel.y = pp.vy;
                     }
                     player.1.custom_size = Some(Vec2::new(0.0, 0.0));
-                    app.number_of_continues += 1;
+                    app.continues += 1;
                 }
                 if goal.index() == other.index(){//クリア
                     app.game_state = GameState::Out;

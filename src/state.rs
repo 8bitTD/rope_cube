@@ -18,7 +18,8 @@ pub struct MyApp{
     pub is_ending_end: bool,
     pub is_tutorial_skip_button_hover: bool,
     pub is_tutorial_reset_button_hover: bool,
-    pub number_of_continues: usize,
+    pub tutorial_grab_blink_timer: f32,
+    pub continues: usize,
 }
 impl Default for MyApp{
     fn default() -> MyApp{
@@ -35,7 +36,8 @@ impl Default for MyApp{
             is_ending_end: false,
             is_tutorial_skip_button_hover: false,
             is_tutorial_reset_button_hover: false,
-            number_of_continues: 0,
+            tutorial_grab_blink_timer: 0.0,
+            continues: 0,
         }
     }
 }
@@ -73,7 +75,6 @@ impl Plugin for StatePlugin {
             (
                 game::update_gismo,
                 tutorial::camera,
-                game::rope_angle_animation,
                 tutorial::rope_grab,
                 tutorial::push_skip_button,
                 tutorial::push_reset_button,
@@ -89,6 +90,7 @@ impl Plugin for StatePlugin {
                 tutorial::blink_figure,
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
+        .add_systems(PostUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Tutorial)))
         .add_systems(OnExit(AppState::Tutorial), despawn)
         .add_systems(OnEnter(AppState::Game), game::setup_asset)
         .add_systems(Update, 
@@ -97,7 +99,7 @@ impl Plugin for StatePlugin {
                 game::update_gismo,
                 game::player_move,
                 game::rope_grab,
-                game::rope_angle_animation,
+                //game::rope_angle_animation,
                 game::camera,
                 game::collision_events,
                 game::reset_game,
@@ -107,6 +109,7 @@ impl Plugin for StatePlugin {
                 game::debug,
             ).chain().run_if(in_state(AppState::Game)),
         )
+        .add_systems(PostUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Game)))
         .add_systems(OnExit(AppState::Game), despawn)
         
         .add_systems(OnEnter(AppState::Ending), ending::spawn_system)

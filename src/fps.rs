@@ -39,8 +39,6 @@ fn setup_asset(
             position_type: PositionType::Absolute,
             right: Val::Px(5.0),
             top: Val::Px(5.0),
-            //width: Val::Px(60.0),
-            //height: Val::Px(20.0),
             ..default()
         },
         Visibility::Hidden,
@@ -71,8 +69,11 @@ fn show_fps(
     }
 }
 
-
-fn print_fps(mut state: ResMut<FPSState>, time: Res<Time>, mut texts: Query<(&UIPrint, &mut Text)>,) {
+fn print_fps(
+    mut state: ResMut<FPSState>, 
+    time: Res<Time>, 
+    mut texts: Query<(&UIPrint, &mut Text)>
+) {
     if !state.timer.tick(time.delta()).finished() {return;}
     let (_uic, mut ts) = texts.single_mut();
     ts.0 = format!("fps: {}", (1.0 / time.delta_secs()) as i32);
