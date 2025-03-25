@@ -170,15 +170,15 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
     mut rope_angle: Single<&mut Transform, (With<RopeAngle>, Without<RopeSprite>, Without<RopeRoot>,Without<PlayerInfo>)>,
     mut rope_sprite: Single<(&mut Sprite, &mut Transform, &mut Visibility), (With<RopeSprite>, Without<RopeAngle>, Without<RopeRoot>, Without<PlayerInfo>)>,
     app: Res<MyApp>,
-    //time: Res<Time>,
+    time: Res<Time>,
 ){
     if player.1.is_grab_rope{ *rope_sprite.2 = Visibility::Visible;}
     else                    { *rope_sprite.2 = Visibility::Hidden; }
     let pp = player.0.translation;
-    //let pv = player.2.linvel * time.delta_secs();
+    let pv = player.2.linvel * time.delta_secs();
     let rp = rope_root.translation;
-    let sax = pp.x - rp.x;
-    let say = pp.y - rp.y;
+    let sax = pp.x + pv.x - rp.x;
+    let say = pp.y + pv.y - rp.y;
     let val = say.atan2(sax) - 1.5708;
     rope_angle.rotation = Quat::from_rotation_z(val);
     let distance = ((pp.x - rp.x).powi(2) + (pp.y - rp.y).powi(2)).sqrt();
