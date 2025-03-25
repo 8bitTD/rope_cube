@@ -28,7 +28,7 @@ impl Default for MyApp{
             stage_count: debug::STARTSTAGE,
             game_state: GameState::In,
             game_state_timer: 0.0,
-            joint_distance: 100.0, 
+            joint_distance: value::DEFAULTJOINTDISTANCE, 
             is_reset_game: false,
             text_stage_alpha: value::DEFAULTTEXTSTAGEALPHA,
             is_clear: debug::ISCLEAR,
@@ -72,7 +72,10 @@ impl Plugin for StatePlugin {
         .add_event::<game::GrabEvent>()
         .add_event::<game::DeathEvent>()
         .add_event::<game::EnterEvent>()
-        .add_systems(OnEnter(AppState::Tutorial), tutorial::setup_asset)
+        .add_systems(OnEnter(AppState::Tutorial), (
+            tutorial::setup_asset,
+            game::setup_player
+        ))
         .add_systems(PreUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Tutorial)))
         .add_systems(Update,
             (
@@ -94,7 +97,10 @@ impl Plugin for StatePlugin {
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
         .add_systems(OnExit(AppState::Tutorial), despawn)
-        .add_systems(OnEnter(AppState::Game), game::setup_asset)
+        .add_systems(OnEnter(AppState::Game), (
+            game::setup_asset,
+            game::setup_player
+        ))
         .add_systems(PreUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Game)))
         .add_systems(Update, 
             (

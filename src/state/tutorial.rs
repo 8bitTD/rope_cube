@@ -302,7 +302,6 @@ pub fn setup_asset(
             position_type: PositionType::Relative,
             align_self: AlignSelf::Start,
             justify_self: JustifySelf::Start,
-            //top: Val::Px(-150.0),
             ..default()
         },
         ReleaseResource,
@@ -439,7 +438,6 @@ pub fn setup_asset(
             bottom: Val::Px(137.0),
             width: Val::Px(450.0),
             height: Val::Px(25.0),
-            //border: UiRect::px(-10.0, -10.0, -10.0, -10.0),
             ..default()
         },
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 1.0)),
@@ -537,54 +535,6 @@ pub fn setup_asset(
             ..default()
         },
         ReleaseResource,
-    ));
-    let col = Color::srgb(0.75, 0.50, 0.25);
-    let root = commands.spawn((//ロープの根元部分
-        Mesh2d(meshes.add(Circle::new(2.5))),
-        MeshMaterial2d(materials.add(col)),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-        RigidBody::Fixed,
-        Velocity::zero(),
-        Collider::cuboid(2.0, 2.0),
-        Visibility::Visible,
-        game::RopeRoot,
-        ReleaseResource
-    )).with_children(|parent|{
-        parent.spawn((
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            game::RopeAngle,
-        )).with_children(|parent2|{
-            parent2.spawn((
-                Sprite{
-                    color: col,
-                    custom_size: Some(Vec2::new(1.0,app.joint_distance)),
-                    ..Default::default()
-                },
-                Transform::from_xyz(0.0, 0.0, -10.0),
-                Visibility::Visible,
-                game::RopeSprite
-            ));
-        });
-    }).id();
-    let joint = RopeJointBuilder::new(app.joint_distance)
-        .local_anchor1(Vec2::new(0.0, 0.0))
-        .local_anchor2(Vec2::new( 0.0, 0.0));
-    commands.spawn((
-        Sprite{
-            color: Color::srgb(0.0, 1.0, 0.0),
-            custom_size: Some(Vec2::new(20.0, 20.0)),
-            ..Default::default()
-        },
-        Transform::from_xyz(0.0, 0.0, 0.0),
-        RigidBody::Dynamic,
-        ActiveEvents::COLLISION_EVENTS,
-        Visibility::Visible,
-        LockedAxes::ROTATION_LOCKED,
-        Velocity::zero(),
-        Collider::cuboid(4.0, 4.0),
-        ImpulseJoint::new(root, joint),
-        game::PlayerInfo::default(),
-        ReleaseResource
     ));
 
     commands.spawn((

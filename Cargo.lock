@@ -4206,7 +4206,7 @@ dependencies = [
 
 [[package]]
 name = "rope_cube"
-version = "0.3.7"
+version = "0.3.8"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",

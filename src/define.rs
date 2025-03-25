@@ -27,6 +27,7 @@ pub mod value{
     pub const ENDINGTEXTMOVE: f32 = 130.0;
     pub const TUTORIALBLINKTIMER: f32 = 0.1;
     pub const TUTORIALMOUSEMOVETIMER: f32 = 0.2;
+    pub const DEFAULTJOINTDISTANCE: f32 = 100.0;
 }
 
 pub mod debug{

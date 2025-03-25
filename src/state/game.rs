@@ -174,6 +174,7 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
 ){
     if player.1.is_grab_rope{ *rope_sprite.2 = Visibility::Visible;}
     else                    { *rope_sprite.2 = Visibility::Hidden; }
+    //app.joint_distance = value::DEFAULTJOINTDISTANCE * player.2.linvel.element_sum();
     let pp = player.0.translation;
     let pv = player.2.linvel * time.delta_secs();
     let rp = rope_root.translation;
@@ -441,6 +442,105 @@ pub fn collision_events(
     }
 }
 
+pub fn setup_player(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    app: Res<MyApp>,
+) {
+
+    let col = Color::srgb(0.75, 0.50, 0.25);
+    let root = commands.spawn((//ロープの根元部分
+        Mesh2d(meshes.add(Circle::new(2.5))),
+        MeshMaterial2d(materials.add(col)),
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        RigidBody::Fixed,
+        Sensor,
+        Velocity::zero(),
+        Collider::cuboid(2.0, 2.0),
+        Visibility::Visible,
+        game::RopeRoot,
+        ReleaseResource
+    )).with_children(|parent|{
+        parent.spawn((
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            game::RopeAngle,
+        )).with_children(|parent2|{
+            parent2.spawn((
+                Sprite{
+                    color: col,
+                    custom_size: Some(Vec2::new(1.0,app.joint_distance)),
+                    ..Default::default()
+                },
+                Transform::from_xyz(0.0, 0.0, -10.0),
+                Visibility::Visible,
+                game::RopeSprite
+            ));
+        });
+    }).id();
+    let joint = RopeJointBuilder::new(value::DEFAULTJOINTDISTANCE * 1.10)
+        .set_motor(0.0, 0.0, 15.0, 0.25)
+        //.max_distance(100.0)
+        //.motor_model(MotorModel::ForceBased)
+        //.set_motor(0.0, 0.0, 30.0, 1.0)
+        .local_anchor1(Vec2::new(0.0, 0.0))
+        .local_anchor2(Vec2::new( 0.0, 0.0));
+    commands.spawn((
+        Sprite{
+            color: Color::srgb(0.0, 1.0, 0.0),
+            custom_size: Some(Vec2::new(20.0, 20.0)),
+            ..Default::default()
+        },
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        RigidBody::Dynamic,
+        //GravityScale(1.25),
+        ActiveEvents::COLLISION_EVENTS,
+        Visibility::Visible,
+        LockedAxes::ROTATION_LOCKED,
+        Velocity::zero(),
+        Collider::cuboid(4.0, 4.0),
+        ImpulseJoint::new(root, joint),
+        PlayerInfo::default(),
+        ReleaseResource
+    ));
+    commands.spawn((
+        Transform::from_xyz(0.0, -1000000.0, 10.0),
+        ReleaseResource,
+        PlayerParticleRoot,
+    )).with_children(|parent|{
+        for x in 0..10{
+            for y in 0..10{
+                let tx = (x as f32 * 2.0) - 9.0;
+                let ty = (y as f32 * 2.0) - 9.0;
+                let range_x = Uniform::new(-1000.0,1000.0);
+                let mut rng_vx = rand::thread_rng();
+                let vx = range_x.sample(&mut rng_vx);
+                let range_y = Uniform::new(0.0,500.0);
+                let mut rng_vy = rand::thread_rng();
+                let vy = range_y.sample(&mut rng_vy);
+                let range_sx = Uniform::new(2.0,5.0);
+                let mut rng_sx = rand::thread_rng();
+                let sx = range_sx.sample(&mut rng_sx);
+                let range_sy = Uniform::new(2.0,5.0);
+                let mut rng_sy = rand::thread_rng();
+                let sy = range_sy.sample(&mut rng_sy);
+                parent.spawn((
+                    Sprite{
+                        color: Color::srgb(0.0, 1.0, 0.0),
+                        custom_size: Some(Vec2::new(sx, sy)),
+                        ..Default::default()
+                    },
+                    RigidBody::Fixed,
+                    Transform::from_xyz(tx, ty, 10.0),
+                    Velocity::zero(),
+                    Collider::cuboid(sx-2.0, sy-2.0),
+                    PlayerParticle{tx: tx, ty: ty, vx: vx, vy: vy},
+                ));
+            }
+        }
+    });
+}
+
 pub fn setup_asset(
     mut commands: Commands,
     mut app: ResMut<MyApp>, 
@@ -534,90 +634,6 @@ pub fn setup_asset(
         },
         ReleaseResource
     ));
-    let col = Color::srgb(0.75, 0.50, 0.25);
-    let root = commands.spawn((//ロープの根元部分
-        Mesh2d(meshes.add(Circle::new(2.5))),
-        MeshMaterial2d(materials.add(col)),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-        RigidBody::Fixed,
-        Velocity::zero(),
-        Collider::cuboid(2.0, 2.0),
-        Visibility::Visible,
-        game::RopeRoot,
-        ReleaseResource
-    )).with_children(|parent|{
-        parent.spawn((
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            game::RopeAngle,
-        )).with_children(|parent2|{
-            parent2.spawn((
-                Sprite{
-                    color: col,
-                    custom_size: Some(Vec2::new(1.0,app.joint_distance)),
-                    ..Default::default()
-                },
-                Transform::from_xyz(0.0, 0.0, -10.0),
-                Visibility::Visible,
-                game::RopeSprite
-            ));
-        });
-    }).id();
-    let joint = RopeJointBuilder::new(app.joint_distance)
-        .local_anchor1(Vec2::new(0.0, 0.0))
-        .local_anchor2(Vec2::new( 0.0, 0.0));
-    commands.spawn((
-        Sprite{
-            color: Color::srgb(0.0, 1.0, 0.0),
-            custom_size: Some(Vec2::new(20.0, 20.0)),
-            ..Default::default()
-        },
-        Transform::from_xyz(0.0, 0.0, 0.0),
-        RigidBody::Dynamic,
-        ActiveEvents::COLLISION_EVENTS,
-        Visibility::Visible,
-        LockedAxes::ROTATION_LOCKED,
-        Velocity::zero(),
-        Collider::cuboid(4.0, 4.0),
-        ImpulseJoint::new(root, joint),
-        PlayerInfo::default(),
-        ReleaseResource
-    ));
-    commands.spawn((
-        Transform::from_xyz(0.0, -1000000.0, 10.0),
-        ReleaseResource,
-        PlayerParticleRoot,
-    )).with_children(|parent|{
-        for x in 0..10{
-            for y in 0..10{
-                let tx = (x as f32 * 2.0) - 9.0;
-                let ty = (y as f32 * 2.0) - 9.0;
-                let range_x = Uniform::new(-1000.0,1000.0);
-                let mut rng_vx = rand::thread_rng();
-                let vx = range_x.sample(&mut rng_vx);
-                let range_y = Uniform::new(0.0,500.0);
-                let mut rng_vy = rand::thread_rng();
-                let vy = range_y.sample(&mut rng_vy);
-                let range_sx = Uniform::new(2.0,5.0);
-                let mut rng_sx = rand::thread_rng();
-                let sx = range_sx.sample(&mut rng_sx);
-                let range_sy = Uniform::new(2.0,5.0);
-                let mut rng_sy = rand::thread_rng();
-                let sy = range_sy.sample(&mut rng_sy);
-                parent.spawn((
-                    Sprite{
-                        color: Color::srgb(0.0, 1.0, 0.0),
-                        custom_size: Some(Vec2::new(sx, sy)),
-                        ..Default::default()
-                    },
-                    RigidBody::Fixed,
-                    Transform::from_xyz(tx, ty, 10.0),
-                    Velocity::zero(),
-                    Collider::cuboid(sx-2.0, sy-2.0),
-                    PlayerParticle{tx: tx, ty: ty, vx: vx, vy: vy},
-                ));
-            }
-        }
-    });
     create_block(commands, app.into(), asset_server, materials, meshes);
 }
 
