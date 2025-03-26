@@ -9,7 +9,7 @@ pub struct MyApp{
     pub stage_count: usize,
     pub game_state: GameState,
     pub game_state_timer: f32,
-    pub joint_distance: f32,
+    pub rope_distance: f32,
     pub is_reset_game: bool,
     pub text_stage_alpha: f32,
     pub is_clear: bool,
@@ -28,7 +28,7 @@ impl Default for MyApp{
             stage_count: debug::STARTSTAGE,
             game_state: GameState::In,
             game_state_timer: 0.0,
-            joint_distance: value::DEFAULTJOINTDISTANCE, 
+            rope_distance: value::DEFAULTROPEDISTANCE, 
             is_reset_game: false,
             text_stage_alpha: value::DEFAULTTEXTSTAGEALPHA,
             is_clear: debug::ISCLEAR,
@@ -93,7 +93,8 @@ impl Plugin for StatePlugin {
                 tutorial::mouse_grab_text,
                 tutorial::mouse_scroll_text,
                 tutorial::blink_figure,
-                tutorial::check_player_position
+                tutorial::check_player_position,
+                game::facial_animation,
             ).chain().run_if(in_state(AppState::Tutorial)),
         )
         .add_systems(OnExit(AppState::Tutorial), despawn)
@@ -114,6 +115,7 @@ impl Plugin for StatePlugin {
                 game::update_game_state,
                 game::update_goal_animation,
                 game::update_play_sound,
+                game::facial_animation,
                 game::debug,
             ).chain().run_if(in_state(AppState::Game)),
         )

@@ -8,10 +8,12 @@ use bevy_rapier2d::prelude::*;
 //use rapier2d::prelude::RigidBodyChanges;
 //use rapier2d::prelude::RigidBodyType;
 use rand::distributions::{Distribution, Uniform};
+
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use super::super::define::*;
 use super::super::state::*;
 use super::super::stage::*;
+use super::super::facial::*;
 
 #[derive(Debug, Component)]
 pub struct RopeRoot;
@@ -169,7 +171,7 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
     rope_root: Single<&Transform, (With<RopeRoot>, Without<RopeSprite>, Without<RopeAngle>, Without<PlayerInfo>)>,
     mut rope_angle: Single<&mut Transform, (With<RopeAngle>, Without<RopeSprite>, Without<RopeRoot>,Without<PlayerInfo>)>,
     mut rope_sprite: Single<(&mut Sprite, &mut Transform, &mut Visibility), (With<RopeSprite>, Without<RopeAngle>, Without<RopeRoot>, Without<PlayerInfo>)>,
-    app: Res<MyApp>,
+    mut app: ResMut<MyApp>,
     time: Res<Time>,
 ){
     if player.1.is_grab_rope{ *rope_sprite.2 = Visibility::Visible;}
@@ -183,8 +185,9 @@ pub fn rope_angle_animation(//ロープの長さ、角度を調整する処理
     let val = say.atan2(sax) - 1.5708;
     rope_angle.rotation = Quat::from_rotation_z(val);
     let distance = ((pp.x - rp.x).powi(2) + (pp.y - rp.y).powi(2)).sqrt();
+    app.rope_distance = distance;
     rope_sprite.1.scale.x = 2.0;
-    rope_sprite.1.scale.y = distance / app.joint_distance;
+    rope_sprite.1.scale.y = distance / value::DEFAULTROPEDISTANCE;
     rope_sprite.1.translation.y = distance * 0.5;
 }
 
@@ -216,6 +219,7 @@ pub fn update_game_state(
     mut black_color: Single<&mut MeshMaterial2d<ColorMaterial>, With<BlackRectangle>>,
     time: Res<Time>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut facial: Query<&mut Visibility, With<FacialParts>>,
 ){
     if app.game_state == GameState::In{
         app.game_state_timer += time.delta_secs();
@@ -231,6 +235,7 @@ pub fn update_game_state(
         black_color.0 = materials.add(Color::srgba(0.0,0.0,0.0, app.game_state_timer*1.0));
         if app.game_state_timer >= value::FADETIME{
             black_color.0 = materials.add(Color::srgba(0.0,0.0,0.0, 1.0));
+            for mut v in facial.iter_mut(){*v = Visibility::Visible;}
             app.game_state_timer = 0.0;
             app.game_state = GameState::In;
             app.is_reset_game = true;
@@ -406,6 +411,7 @@ pub fn collision_events(
     mut player_particle: Query<(&mut RigidBody, &mut Velocity, &PlayerParticle), (With<PlayerParticle>, Without<PlayerInfo>, Without<GoalCollision>, Without<FixedBlock>)>,
     mut player_particle_root: Single<&mut Transform, (With<PlayerParticleRoot>, Without<PlayerInfo>)>,
     mut enter_events: EventWriter<EnterEvent>,
+    mut facial: Query<&mut Visibility, With<FacialParts>>,
 ){
     if app.game_state != GameState::Play {return;}
     if collision_events.is_empty(){return;}
@@ -420,6 +426,7 @@ pub fn collision_events(
                 if res.is_ok(){//ゲームオーバー
                     death_events.send_default();
                     app.game_state = GameState::Out;
+                    for mut v in facial.iter_mut(){*v = Visibility::Hidden;}
                     commands.entity(player.0).insert(RigidBodyDisabled);
                     player_particle_root.translation = player.2.translation;
                     for (mut pr, mut pv, pp) in player_particle.iter_mut(){
@@ -442,11 +449,60 @@ pub fn collision_events(
     }
 }
 
+pub fn facial_animation(
+    mut f_normal: Single<(&mut Transform, &mut FacialNormal, &mut GlobalTransform, &mut Visibility), (With<FacialNormal>, Without<FacialNormalEyes>)>,
+    mut f_normal_eyes: Single<(&mut Transform, &mut GlobalTransform), With<FacialNormalEyes>>,
+    mut f_root: Single<(&mut Visibility, &mut FacialRoot), (With<FacialRoot>, Without<FacialNormal>, Without<FacialSmile>, Without<FacialNormalEyes>)>,
+    mut f_smile: Single<(&mut Visibility, &mut FacialSmile, &mut Transform), (With<FacialSmile>, Without<FacialNormal>, Without<FacialRoot>, Without<FacialNormalEyes>)>,
+    app: Res<MyApp>,
+    time: Res<Time>,
+    player: Single<&PlayerInfo, With<PlayerInfo>>
+){
+    f_root.1.state_timer += time.delta_secs();
+
+    match app.rope_distance > value::DEFAULTROPEDISTANCE * 0.8 {
+        true => {
+            if player.is_grab_rope{
+                f_root.1.state = FacialState::Smile;
+                f_smile.1.is_smile_jump = true;
+            }else{
+                if !f_smile.1.is_smile_jump{
+                    f_root.1.state = FacialState::Normal;
+                }
+            }
+        },
+        _ => {
+            f_root.1.state = FacialState::Normal;
+            f_smile.1.is_smile_jump = false;
+        }
+    }
+    match f_root.1.state{
+        FacialState::Normal => {
+            f_smile.2.scale = Vec3::new(0.0, 0.0, 0.0);
+            f_normal.0.scale = Vec3::new(1.0, 1.0, 1.0);
+        },
+        _ => {
+            f_smile.2.scale = Vec3::new(1.0, 1.0, 1.0);
+            f_normal.0.scale = Vec3::new(0.0, 0.0, 0.0);
+        }
+    };
+
+    //瞬き
+    f_normal.1.blink_timer += time.delta_secs();
+    if f_normal.1.blink_timer > f_normal.1.blink_period_timer && f_normal.1.blink_timer < f_normal.1.blink_period_timer + value::FACIALBLINK{
+        f_normal_eyes.0.scale.y = 0.5;
+    }else if f_normal.1.blink_timer > f_normal.1.blink_period_timer + value::FACIALBLINK{
+        f_normal.1.blink_timer = 0.0;
+        f_normal.1.period_timer_reset();
+    }else{
+        f_normal_eyes.0.scale.y = 1.0;
+    }
+}
+
 pub fn setup_player(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    app: Res<MyApp>,
 ) {
 
     let col = Color::srgb(0.75, 0.50, 0.25);
@@ -469,7 +525,7 @@ pub fn setup_player(
             parent2.spawn((
                 Sprite{
                     color: col,
-                    custom_size: Some(Vec2::new(1.0,app.joint_distance)),
+                    custom_size: Some(Vec2::new(1.0,value::DEFAULTROPEDISTANCE)),
                     ..Default::default()
                 },
                 Transform::from_xyz(0.0, 0.0, -10.0),
@@ -478,7 +534,7 @@ pub fn setup_player(
             ));
         });
     }).id();
-    let joint = RopeJointBuilder::new(value::DEFAULTJOINTDISTANCE * 1.05)
+    let joint = RopeJointBuilder::new(value::DEFAULTROPEDISTANCE)
         .set_motor(0.0, 0.0, 50.0, 1.0)
         //.max_distance(100.0)
         //.motor_model(MotorModel::ForceBased)
@@ -496,13 +552,106 @@ pub fn setup_player(
         //GravityScale(1.25),
         ActiveEvents::COLLISION_EVENTS,
         Visibility::Visible,
-        LockedAxes::ROTATION_LOCKED,
+        //LockedAxes::ROTATION_LOCKED,
         Velocity::zero(),
         Collider::cuboid(4.0, 4.0),
         ImpulseJoint::new(root, joint),
         PlayerInfo::default(),
         ReleaseResource
-    ));
+    )).with_children(|parent|{
+        parent.spawn((
+            FacialRoot::default(),
+            Transform::from_xyz(0.0, 0.0, 1.0),
+            Visibility::Visible,
+        )).with_children(|parent2|{
+            parent2.spawn((
+                FacialNormal::default(),
+                Transform::from_xyz(0.0, 0.0, 1.0),
+                Visibility::Visible,
+            )).with_children(|parent3|{
+                parent3.spawn((
+                    FacialNormalEyes,
+                    Transform::from_xyz(0.0, 0.0, 1.0),
+                )).with_children(|parent4|{
+                    parent4.spawn((
+                        Mesh2d(meshes.add(Circle::new(1.75))),
+                        Transform::from_xyz(-4.5, 3.0, 1.0),
+                        MeshMaterial2d(materials.add(Color::BLACK)),
+                        FacialParts,
+                    ));
+                    parent4.spawn((
+                        Mesh2d(meshes.add(Circle::new(1.75))),
+                        Transform::from_xyz(4.5, 3.0, 1.0),
+                        MeshMaterial2d(materials.add(Color::BLACK)),
+                        FacialParts,
+                    ));
+                });
+                let mut l_mouse = Transform::from_xyz(-2.0, -5.0, 1.0);
+                l_mouse.rotate_z((-15.0_f32).to_radians());
+                let mut r_mouse = Transform::from_xyz(2.0, -5.0, 1.0);
+                r_mouse.rotate_z((15.0_f32).to_radians());
+                parent3.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(5.0, 2.0))),
+                    l_mouse,
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+                parent3.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(5.0, 2.0))),
+                    r_mouse,
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+            });
+
+            let mut lu_eye = Transform::from_xyz(-5.0, 4.0, 1.0);
+            lu_eye.rotate_z((-20.0_f32).to_radians());
+            let mut lb_eye = Transform::from_xyz(-5.0, 2.0, 1.0);
+            lb_eye.rotate_z((20.0_f32).to_radians());
+            let mut ru_eye = Transform::from_xyz(5.0, 4.0, 1.0);
+            ru_eye.rotate_z((200.0_f32).to_radians());
+            let mut rb_eye = Transform::from_xyz(5.0, 2.0, 1.0);
+            rb_eye.rotate_z((160.0_f32).to_radians());
+            parent2.spawn((
+                Transform::from_xyz(0.0, 0.0, 1.0),
+                Visibility::Visible,
+                FacialSmile::default(),
+            )).with_children(|parent3|{
+                parent3.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(7.0, 1.5))),
+                    lu_eye,
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+                parent3.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(7.0, 1.5))),
+                    lb_eye,
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+
+                parent3.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(7.0, 1.5))),
+                    ru_eye,
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+                parent3.spawn((
+                    Mesh2d(meshes.add(Rectangle::new(7.0, 1.5))),
+                    rb_eye,
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+
+                parent3.spawn((
+                    Mesh2d(meshes.add(Triangle2d::new(Vec2::new(-3.0, 2.0), Vec2::new(3.0, 2.0), Vec2::new(0.0, -5.0)))),
+                    Transform::from_xyz(0.0, -4.0, 1.0),
+                    MeshMaterial2d(materials.add(Color::BLACK)),
+                    FacialParts,
+                ));
+            });
+        });
+    });
     commands.spawn((
         Transform::from_xyz(0.0, -1000000.0, 10.0),
         ReleaseResource,
@@ -515,7 +664,7 @@ pub fn setup_player(
                 let range_x = Uniform::new(-1000.0,1000.0);
                 let mut rng_vx = rand::thread_rng();
                 let vx = range_x.sample(&mut rng_vx);
-                let range_y = Uniform::new(0.0,500.0);
+                let range_y = Uniform::new(0.0,400.0);
                 let mut rng_vy = rand::thread_rng();
                 let vy = range_y.sample(&mut rng_vy);
                 let range_sx = Uniform::new(2.0,5.0);

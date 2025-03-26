@@ -5,6 +5,7 @@ use bevy::{
 use bevy_rapier2d::prelude::*;
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 mod define;
+mod facial;
 mod fps;
 mod stage;
 mod state;
