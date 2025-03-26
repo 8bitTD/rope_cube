@@ -351,6 +351,7 @@ pub fn debug(
     mut root: Single<&mut Transform, With<RopeRoot>>,
     time: Res<Time>,
     mut app: ResMut<MyApp>,
+    mut app_state: ResMut<NextState<AppState>>,
 ){
     if !debug::ISDEBUG{return;}
     let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
@@ -362,10 +363,21 @@ pub fn debug(
     let ds = time.delta_secs();
     root.translation.x += x_axis as f32 * ds * 500.0;
     root.translation.y += y_axis as f32 * ds * 500.0;
-    if keyboard_input.just_pressed(KeyCode::KeyN){
+
+    if keyboard_input.pressed(KeyCode::ShiftLeft) && keyboard_input.just_pressed(KeyCode::KeyN){
+        app.game_state = GameState::Out;
+        app.stage_count -= 1;
+        if app.stage_count < 1{ app.stage_count = 1; }
+    }else if keyboard_input.just_pressed(KeyCode::KeyN){
         app.game_state = GameState::Out;
         app.stage_count += 1;
     }
+
+    if keyboard_input.just_pressed(KeyCode::KeyC){
+        app.game_state = GameState::Out;
+        app_state.set(AppState::CreateStage);
+    }
+    
 
 }
 
@@ -644,7 +656,7 @@ pub fn setup_player(
                 ));
 
                 parent3.spawn((
-                    Mesh2d(meshes.add(Triangle2d::new(Vec2::new(-3.0, 2.0), Vec2::new(3.0, 2.0), Vec2::new(0.0, -5.0)))),
+                    Mesh2d(meshes.add(Triangle2d::new(Vec2::new(-4.0, 1.0), Vec2::new(4.0, 1.0), Vec2::new(0.0, -6.0)))),
                     Transform::from_xyz(0.0, -4.0, 1.0),
                     MeshMaterial2d(materials.add(Color::BLACK)),
                     FacialParts,

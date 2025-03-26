@@ -44,6 +44,7 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
             rp,
         ))
+        .add_plugins(bevy_egui::EguiPlugin)
         //.add_plugins(WorldInspectorPlugin::new())
         .add_plugins(state::StatePlugin)
         .add_plugins(fps::FPSPlugin::new(1))

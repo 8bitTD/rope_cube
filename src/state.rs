@@ -2,7 +2,36 @@ use bevy::prelude::*;
 pub mod game;
 pub mod ending;
 pub mod tutorial;
+pub mod create_stage;
+
 use super::define::*;
+use super::stage;
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+pub enum AppState{
+    #[default]
+    Tutorial,
+    Game,
+    Ending,
+   
+    CreateStage,
+}
+
+#[derive(Resource)] 
+pub struct CreateStage{
+    pub stage_path: String,
+    pub blocks: Vec<stage::BlockCollision>,
+    pub goal: stage::GoalCollision,
+}
+impl Default for CreateStage{
+    fn default() -> Self{
+        Self { 
+            stage_path: String::from("./assets/stage/stage_01.yaml"), 
+            blocks: Vec::new(), 
+            goal: stage::GoalCollision { px: 0.0, py: -500.0 }
+        }
+    }
+}
 
 #[derive(Resource)] 
 pub struct MyApp{
@@ -21,6 +50,7 @@ pub struct MyApp{
     pub tutorial_grab_blink_timer: f32,
     pub tutorial_mouse_move_timer: f32,
     pub continues: usize,
+    pub cs: CreateStage
 }
 impl Default for MyApp{
     fn default() -> MyApp{
@@ -40,17 +70,11 @@ impl Default for MyApp{
             tutorial_grab_blink_timer: 0.0,
             tutorial_mouse_move_timer: 0.0,
             continues: 0,
+            cs: CreateStage::default(),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-pub enum AppState{
-    #[default]
-    Tutorial,
-    Game,
-    Ending,
-}
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Default, Resource)]
 pub enum GameState{
     #[default]
@@ -120,6 +144,20 @@ impl Plugin for StatePlugin {
             ).chain().run_if(in_state(AppState::Game)),
         )
         .add_systems(OnExit(AppState::Game), despawn)
+        
+        .add_systems(OnEnter(AppState::CreateStage), (
+            create_stage::setup_asset_stage,
+            //game::setup_player
+        ))
+        .add_systems(OnExit(AppState::CreateStage), despawn)
+
+        .add_systems(Update, (
+                create_stage::ui_example_system,
+                create_stage::update_gismo,
+                create_stage::camera,
+            ).chain().run_if(in_state(AppState::CreateStage)),
+        )
+        
         .add_systems(OnEnter(AppState::Ending), ending::spawn_system)
         .add_systems(Update, 
             (

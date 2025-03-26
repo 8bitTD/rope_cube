@@ -1,11 +1,13 @@
 [package]
 name = "rope_cube"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2024"
 
 [dependencies]
 bevy = {version = "0.15.3", features = ["mp3", "wav"]}
 bevy_rapier2d = "0.29.0"
-rapier2d = "0.23.1"
+bevy_egui = "0.33.0"
 bevy-inspector-egui = "0.30.0"
+rapier2d = "0.23.1"
 rand = "0.8.5"
+yaml-rust2 = "0.10.0"
