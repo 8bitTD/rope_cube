@@ -1,13 +1,13 @@
-use bevy::prelude::*;
+//use bevy::prelude::*;
+use serde::{Serialize, Deserialize};
 
-
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GoalCollision {
     pub px :f32,
     pub py: f32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct BlockCollision {
     pub px: f32,
     pub py: f32,
@@ -65,13 +65,13 @@ pub fn get_stage1() -> Stage{
 }
 
 pub fn get_stage2() -> Stage{
-    Stage::new(1000.0, 830.0)//ゴール
-        .add_block(440.0, 990.0, 640.0, 10.0, 0.0)//上
-        .add_block(440.0, -210.0, 640.0, 10.0, 0.0)//下
-        .add_block(-210.0, 390.0, 10.0, 610.0, 0.0)//左
-        .add_block(1090.0, 390.0, 10.0, 610.0, 0.0)//右
-        .add_block(360.0,190.0,420.0, 10.0, 0.0)
-        .add_block(580.0,550.0,500.0, 10.0, 0.0)
+    Stage::new(-106.0, 906.0)
+        .add_block(-105.0, 980.0, 365.0, 10.0, 0.0)
+        .add_block(-119.0, -147.0, 360.0, 10.0, 0.0)
+        .add_block(-185.0, 141.0, 10.0, 405.0, -45.0)
+        .add_block(525.0, 139.0, 10.0, 410.0, -45.0)
+        .add_block(-180.0, 697.0, 10.0, 400.0, 45.0)
+        .add_block(535.0, 701.0, 10.0, 400.0, 45.0)
 }
 pub fn get_stage3() -> Stage{
     Stage::new(30.0, -920.0)//ゴール

@@ -216,11 +216,14 @@ pub fn spawn_system(
     ));
 }
 
+#[cfg(target_arch = "wasm32")]
+pub fn update_debug() {}
+
+#[cfg(not(target_arch = "wasm32"))]
 pub fn update_debug(
     mut app_state: ResMut<NextState<AppState>>,
     keyboard_input:  Res<ButtonInput<KeyCode>>,
 ) {
-    if !debug::ISDEBUG{return;}
     if keyboard_input.just_pressed(KeyCode::F2){
         app_state.set(AppState::Game);
     }

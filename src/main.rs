@@ -13,10 +13,14 @@ mod state;
 fn main() {
     let mut rp = RapierDebugRenderPlugin::default();
     rp.enabled = define::debug::RAPIERDEBUGRENDERPLUGINENABLED;
-    let px = match define::debug::ISDEBUG{
-        true => {-1700},
-        _ => {0}
-    };
+    //let px = match define::debug::ISDEBUG{
+    //    true => {-1700},
+    //    _ => {0}
+    //};
+    #[cfg(target_arch = "wasm32")]
+    let px = 0;
+    #[cfg(not(target_arch = "wasm32"))]
+    let px = -1700;
     App::new()
         .add_plugins(
             DefaultPlugins.set(WindowPlugin{

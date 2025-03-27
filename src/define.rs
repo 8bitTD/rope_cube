@@ -29,6 +29,7 @@ pub mod value{
     pub const TUTORIALMOUSEMOVETIMER: f32 = 0.2;
     pub const DEFAULTROPEDISTANCE: f32 = 105.0;
     pub const FACIALBLINK: f32 = 0.1;
+    pub const STAGEPATH: &str = "./assets/stage/stage_";
 }
 
 pub mod debug{
@@ -37,5 +38,4 @@ pub mod debug{
     pub const ISCLEAR: bool = false;//初期化クリアフラグ
     pub const RAPIERDEBUGRENDERPLUGINENABLED: bool = false;//物理のガイド表示
     pub const ISSKIPTUTORIAL: bool = false;//チュートリアルスキップ
-    pub const ISDEBUG: bool = false;//デバッグモード
 }

@@ -9,6 +9,7 @@ use bevy_rapier2d::prelude::*;
 //use rapier2d::prelude::RigidBodyType;
 use rand::distributions::{Distribution, Uniform};
 
+
 //use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use super::super::define::*;
 use super::super::state::*;
@@ -307,14 +308,22 @@ pub fn camera(
             camera.0.translation += sa;
             if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
             let delta = accumulated_mouse_scroll.delta;
-            camera.1.scale -= match debug::ISDEBUG{
-                true => delta.y * ds * system::FPS,
-                _ => delta.y * ds * 0.25,
-            };
+            
+            camera.1.scale = get_camera_scale(delta.y, ds);
+
             if camera.1.scale < 1.0{camera.1.scale = 1.0}
             if camera.1.scale > 20.0{camera.1.scale = 20.0;}
         },
     }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn get_camera_scale(delta: f32, ds: f32) -> f32{
+    delta * ds * system::FPS
+}
+#[cfg(target_arch = "wasm32")]
+pub fn get_camera_scale(delta: f32, ds: f32) -> f32{
+    delta * ds * 0.25
 }
 
 pub fn rope_grab(
@@ -346,14 +355,17 @@ pub fn rope_grab(
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+pub fn debug(){}
+
+#[cfg(not(target_arch = "wasm32"))]
 pub fn debug(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut root: Single<&mut Transform, With<RopeRoot>>,
     time: Res<Time>,
     mut app: ResMut<MyApp>,
-    mut app_state: ResMut<NextState<AppState>>,
 ){
-    if !debug::ISDEBUG{return;}
+    
     let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
     let down = keyboard_input.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]);
     let left = keyboard_input.any_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]);
@@ -372,13 +384,12 @@ pub fn debug(
         app.game_state = GameState::Out;
         app.stage_count += 1;
     }
-
+    /*
     if keyboard_input.just_pressed(KeyCode::KeyC){
         app.game_state = GameState::Out;
         app_state.set(AppState::CreateStage);
     }
-    
-
+    */
 }
 
 pub fn player_move(
@@ -805,6 +816,8 @@ pub fn create_block(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ){
+    //let stage_name = format!("stage_{:03}",app.stage_count);
+    //let stage_path = format!("stage/{}.json", &stage_name);
     let stage = Stage::new_stage(app.stage_count);
     for b in stage.blocks{//ブロック作成
         let mut tfm = Transform::from(Transform::from_xyz(b.px, b.py, 0.0));

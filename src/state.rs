@@ -1,4 +1,7 @@
 use bevy::prelude::*;
+use serde::{Serialize, Deserialize};
+use std::io::Write;
+
 pub mod game;
 pub mod ending;
 pub mod tutorial;
@@ -6,29 +9,76 @@ pub mod create_stage;
 
 use super::define::*;
 use super::stage;
-
+#[cfg(target_arch = "wasm32")]
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub enum AppState{
     #[default]
     Tutorial,
     Game,
     Ending,
-   
     CreateStage,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+pub enum AppState{
+    Tutorial,
+    Game,
+    Ending,
+    #[default]
+    CreateStage,
+}
+
+#[derive(Resource, Serialize, Deserialize)] 
+pub struct Json{
+    pub blocks: Vec<stage::BlockCollision>,
+    pub goal: stage::GoalCollision,
+}
+impl Default for Json{
+    fn default() -> Self{
+        Self { 
+            blocks: Vec::new(), 
+            goal: stage::GoalCollision { px: 0.0, py: -500.0 }
+        }
+    }
 }
 
 #[derive(Resource)] 
 pub struct CreateStage{
-    pub stage_path: String,
-    pub blocks: Vec<stage::BlockCollision>,
-    pub goal: stage::GoalCollision,
+    stage_number: usize, 
+    pub json: Json,
+    pub highlight_block_num: Option<usize>,
+    pub delete_num: Option<usize>,
+}
+impl CreateStage{
+    pub fn load_json(&mut self){
+        let path = format!("{}{:03}.json", value::STAGEPATH, self.stage_number);
+        let contents = match std::fs::read_to_string(&path) {                                                 
+            Ok(contents) => contents,                                                  
+            Err(_error) => { return; },                                                                 
+        };
+        let res= serde_json::from_str(&contents);
+        if res.is_err(){return;}  
+        let jsn = res.unwrap();
+        self.json = jsn;
+    }
+
+    pub fn save_json(&self){
+        let content = serde_json::to_string_pretty(&self.json).unwrap();
+        let path = format!("{}{:03}.json", value::STAGEPATH, self.stage_number);
+        let mut file = std::fs::File::create(&path).expect("create failed");
+        file.write_all(content.as_bytes()).unwrap();
+        println!("{:?}","save_json!");
+    }
 }
 impl Default for CreateStage{
     fn default() -> Self{
+        //let path = format!("./assets/stage/stage_001.json");
         Self { 
-            stage_path: String::from("./assets/stage/stage_01.yaml"), 
-            blocks: Vec::new(), 
-            goal: stage::GoalCollision { px: 0.0, py: -500.0 }
+            stage_number: 1, 
+            json: Json::default(),
+            highlight_block_num: None,
+            delete_num: None,
         }
     }
 }
@@ -147,16 +197,26 @@ impl Plugin for StatePlugin {
         
         .add_systems(OnEnter(AppState::CreateStage), (
             create_stage::setup_asset_stage,
-            //game::setup_player
+            game::setup_player,
         ))
-        .add_systems(OnExit(AppState::CreateStage), despawn)
-
+        .add_systems(PreUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::CreateStage)))
         .add_systems(Update, (
                 create_stage::ui_example_system,
                 create_stage::update_gismo,
                 create_stage::camera,
+                create_stage::highlight_blocks,
+                create_stage::camera_focus,
+                create_stage::delete_block,
+                game::update_goal_animation,
+                game::facial_animation,
+                game::player_move,
             ).chain().run_if(in_state(AppState::CreateStage)),
         )
+        .add_systems(PostUpdate,(
+                create_stage::update_blocks,
+            ).chain().run_if(in_state(AppState::CreateStage)),
+        )
+        .add_systems(OnExit(AppState::CreateStage), despawn)
         
         .add_systems(OnEnter(AppState::Ending), ending::spawn_system)
         .add_systems(Update, 

@@ -196,10 +196,7 @@ pub fn camera(
     camera.0.translation += sa;
     if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
     let delta = accumulated_mouse_scroll.delta;
-    camera.1.scale -= match debug::ISDEBUG{
-        true => delta.y * ds * system::FPS,
-        _ => delta.y * ds * 0.25,
-    };
+    camera.1.scale -= game::get_camera_scale(delta.y, ds);
     if camera.1.scale < 1.0{camera.1.scale = 1.0}
     if camera.1.scale > 20.0{camera.1.scale = 20.0;}
 }
