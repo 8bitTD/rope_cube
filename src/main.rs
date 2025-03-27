@@ -9,6 +9,7 @@ mod facial;
 mod fps;
 mod stage;
 mod state;
+mod stage_map;
 
 fn main() {
     let mut rp = RapierDebugRenderPlugin::default();

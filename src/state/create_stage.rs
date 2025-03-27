@@ -7,6 +7,8 @@ use bevy_rapier2d::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use clipboard::ClipboardProvider;
 use clipboard::ClipboardContext;
+use std::fs::File;
+use std::io::Read;
 
 use super::super::state::*;
 use super::super::define::*;
@@ -137,7 +139,7 @@ pub fn ui_example_system(
             ui.label("stage_");
             //ui.add_sized([380.0, 20.0], egui::TextEdit::singleline(&mut app.cs.stage_path));
             ui.add(egui::DragValue::new(&mut app.cs.stage_number).range(1..=20));
-            if ui.button("exec").clicked(){
+            if ui.button("open").clicked(){
                 //app.cs.stage_path = res.unwrap().as_path().to_string_lossy().to_string().replace("\\","/");
                 app.cs.load_json();
                 for entity in blocks.iter() {
@@ -217,20 +219,45 @@ pub fn ui_example_system(
                 app_state.set(AppState::Tutorial);
             }
             if ui.button("clipboard").clicked(){
-                let mut cb = format!("    Stage::new({}.0, {}.0)\n", app.cs.json.goal.px, app.cs.json.goal.py);
-                for (u, b) in app.cs.json.blocks.iter().enumerate(){
-                    let ad = match u == app.cs.json.blocks.len() - 1{
-                        true =>  {format!("        .add_block({}.0, {}.0, {}.0, {}.0, {}.0)",   b.px, b.py, b.sx, b.sy, b.degree)},
-                        _ =>     {format!("        .add_block({}.0, {}.0, {}.0, {}.0, {}.0)\n", b.px, b.py, b.sx, b.sy, b.degree)},
-                    };
-                    cb.push_str(&ad);
-                }
-                let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+                let cb = get_function_string(&app.cs);
                 println!("{:?}", cb);
+                let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                 ctx.set_contents(cb).unwrap();
+            }
+            if ui.button("test").clicked(){
+                let cb = get_function_string(&app.cs);
+                let stage_map_path = "./src/stage_map.rs";
+                if std::fs::metadata(&stage_map_path).is_ok(){
+                    let mut contents = String::new();
+                    let mut f = std::fs::File::open(&stage_map_path).expect("file not found");
+                    f.read_to_string(&mut contents).expect("something went wrong reading the file");
+                    let fname = format!("pub fn get_stage{}() -> Stage", app.cs.stage_number);
+                    if contents.contains(&fname){//すでに関数がある場合
+                        let re = regex::Regex::new(r"[p][u][b](?P<h>.[\s\S]+?)[}]").unwrap();
+                        for (u, caps) in re.captures_iter(&contents).enumerate() {
+                            let text = caps.get(1).map_or("", |m| m.as_str());
+                            println!("{:?}", text);
+                        }
+                    }else{//関数がない場合
+                        let new_contents = format!("{}{}",contents, cb);
+
+                    }
+                }
             }
         });
     });
+}
+
+pub fn get_function_string(cs: &CreateStage) -> String{
+    let mut cb = format!("pub fn get_stage{}() -> Stage{}\n", cs.stage_number, "{");
+    let ad = format!("    Stage::new({}.0, {}.0)\n", cs.json.goal.px, cs.json.goal.py);
+    cb.push_str(&ad);
+    for b in cs.json.blocks.iter(){
+        let ad = format!("        .add_block({}.0, {}.0, {}.0, {}.0, {}.0)\n", b.px, b.py, b.sx, b.sy, b.degree);
+        cb.push_str(&ad);
+    }
+    cb.push_str("}");
+    return cb;
 }
 
 pub fn delete_block(

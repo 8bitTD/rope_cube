@@ -153,14 +153,10 @@ impl Plugin for StatePlugin {
         .add_systems(PreUpdate, (game::rope_angle_animation).chain().run_if(in_state(AppState::Tutorial)))
         .add_systems(Update,
             (
-                game::update_gismo,
                 tutorial::camera,
                 tutorial::rope_grab,
                 tutorial::push_skip_button,
                 tutorial::push_reset_button,
-                game::player_move,
-                game::update_play_sound,
-                game::update_goal_animation,
                 tutorial::collision_events,
                 tutorial::mouse_move_text,
                 tutorial::mouse_jump_text,
@@ -168,6 +164,11 @@ impl Plugin for StatePlugin {
                 tutorial::mouse_scroll_text,
                 tutorial::blink_figure,
                 tutorial::check_player_position,
+                tutorial::debug,
+                game::update_gismo,
+                game::player_move,
+                game::update_play_sound,
+                game::update_goal_animation,
                 game::facial_animation,
             ).chain().run_if(in_state(AppState::Tutorial)),
         )

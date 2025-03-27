@@ -574,3 +574,41 @@ pub fn setup_asset(
         }
     });
 }
+
+
+#[cfg(target_arch = "wasm32")]
+pub fn debug(){}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn debug(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut root: Single<&mut Transform, With<game::RopeRoot>>,
+    time: Res<Time>,
+    mut app: ResMut<MyApp>,
+    mut app_state: ResMut<NextState<AppState>>,
+){
+    
+    let up = keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::ArrowUp]);
+    let down = keyboard_input.any_pressed([KeyCode::KeyS, KeyCode::ArrowDown]);
+    let left = keyboard_input.any_pressed([KeyCode::KeyA, KeyCode::ArrowLeft]);
+    let right = keyboard_input.any_pressed([KeyCode::KeyD, KeyCode::ArrowRight]);
+    let x_axis = -(left as i8) + right as i8;
+    let y_axis = -(down as i8) + up as i8;
+    let ds = time.delta_secs();
+    root.translation.x += x_axis as f32 * ds * 500.0;
+    root.translation.y += y_axis as f32 * ds * 500.0;
+
+    if keyboard_input.pressed(KeyCode::ShiftLeft) && keyboard_input.just_pressed(KeyCode::KeyN){
+        app.game_state = GameState::Out;
+        app.stage_count -= 1;
+        if app.stage_count < 1{ app.stage_count = 1; }
+    }else if keyboard_input.just_pressed(KeyCode::KeyN){
+        app_state.set(AppState::Game);
+    }
+    
+    if keyboard_input.just_pressed(KeyCode::KeyC){
+        app.game_state = GameState::Out;
+        app_state.set(AppState::CreateStage);
+    }
+    
+}

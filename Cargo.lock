@@ -4423,7 +4423,7 @@ dependencies = [
 
 [[package]]
 name = "rope_cube"
-version = "0.4.4"
+version = "0.4.5"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
@@ -4432,6 +4432,7 @@ dependencies = [
  "clipboard",
  "rand",
  "rapier2d",
+ "regex",
  "serde",
  "serde_json",
 ]

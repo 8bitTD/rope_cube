@@ -309,7 +309,7 @@ pub fn camera(
             if accumulated_mouse_scroll.delta == Vec2::ZERO { return; }
             let delta = accumulated_mouse_scroll.delta;
             
-            camera.1.scale = get_camera_scale(delta.y, ds);
+            camera.1.scale -= get_camera_scale(delta.y, ds);
 
             if camera.1.scale < 1.0{camera.1.scale = 1.0}
             if camera.1.scale > 20.0{camera.1.scale = 20.0;}
@@ -319,8 +319,11 @@ pub fn camera(
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn get_camera_scale(delta: f32, ds: f32) -> f32{
-    delta * ds * system::FPS
+    let v = delta * ds * system::FPS;
+    println!("{:?}", v);
+    return v;
 }
+
 #[cfg(target_arch = "wasm32")]
 pub fn get_camera_scale(delta: f32, ds: f32) -> f32{
     delta * ds * 0.25
