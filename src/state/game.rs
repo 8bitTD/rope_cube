@@ -319,9 +319,7 @@ pub fn camera(
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn get_camera_scale(delta: f32, ds: f32) -> f32{
-    let v = delta * ds * system::FPS;
-    println!("{:?}", v);
-    return v;
+    delta * ds * system::FPS
 }
 
 #[cfg(target_arch = "wasm32")]

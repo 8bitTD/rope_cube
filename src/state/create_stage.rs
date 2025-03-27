@@ -7,7 +7,6 @@ use bevy_rapier2d::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use clipboard::ClipboardProvider;
 use clipboard::ClipboardContext;
-use std::fs::File;
 use std::io::Read;
 
 use super::super::state::*;
@@ -224,7 +223,7 @@ pub fn ui_example_system(
                 let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                 ctx.set_contents(cb).unwrap();
             }
-            if ui.button("test").clicked(){
+            if ui.button("save_rs").clicked(){
                 let cb = get_function_string(&app.cs);
                 let stage_map_path = "./src/stage_map.rs";
                 if std::fs::metadata(&stage_map_path).is_ok(){
@@ -232,16 +231,24 @@ pub fn ui_example_system(
                     let mut f = std::fs::File::open(&stage_map_path).expect("file not found");
                     f.read_to_string(&mut contents).expect("something went wrong reading the file");
                     let fname = format!("pub fn get_stage{}() -> Stage", app.cs.stage_number);
+                    let mut new_contents =  String::from("use super::stage::*;\n\n");
                     if contents.contains(&fname){//すでに関数がある場合
                         let re = regex::Regex::new(r"[p][u][b](?P<h>.[\s\S]+?)[}]").unwrap();
-                        for (u, caps) in re.captures_iter(&contents).enumerate() {
+                        for caps in re.captures_iter(&contents) {
                             let text = caps.get(1).map_or("", |m| m.as_str());
-                            println!("{:?}", text);
+                            let start = format!(" fn get_stage{}", app.cs.stage_number);
+                            if text.starts_with(&start){
+                                new_contents.push_str(&format!("{}\n", &cb));
+                            }else{
+                                let new_text = format!("pub{}{}\n", &text, "}");
+                                new_contents.push_str(&new_text);
+                            }
                         }
                     }else{//関数がない場合
-                        let new_contents = format!("{}{}",contents, cb);
-
+                        new_contents = format!("{}{}",contents, cb);
                     }
+                    let mut file = std::fs::File::create(&stage_map_path).unwrap();
+                    file.write_all(new_contents.as_bytes()).unwrap();
                 }
             }
         });
