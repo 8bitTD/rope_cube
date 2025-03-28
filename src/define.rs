@@ -27,7 +27,7 @@ pub mod value{
     pub const ENDINGTEXTMOVE: f32 = 130.0;
     pub const TUTORIALBLINKTIMER: f32 = 0.1;
     pub const TUTORIALMOUSEMOVETIMER: f32 = 0.2;
-    pub const DEFAULTROPEDISTANCE: f32 = 105.0;
+    pub const DEFAULTROPEDISTANCE: f32 = 250.0;
     pub const FACIALBLINK: f32 = 0.1;
     pub const STAGEPATH: &str = "./assets/stage/stage_";
 }

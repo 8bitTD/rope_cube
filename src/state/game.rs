@@ -484,7 +484,7 @@ pub fn facial_animation(
 ){
     f_root.1.state_timer += time.delta_secs();
 
-    match app.rope_distance > value::DEFAULTROPEDISTANCE * 0.8 {
+    match app.rope_distance > value::DEFAULTROPEDISTANCE * 0.5 {
         true => {
             if player.is_grab_rope{
                 f_root.1.state = FacialState::Smile;
@@ -559,12 +559,12 @@ pub fn setup_player(
         });
     }).id();
     let joint = RopeJointBuilder::new(value::DEFAULTROPEDISTANCE)
-        .set_motor(0.0, 0.0, 50.0, 1.0)
+        .set_motor(0.0, 0.0, 50.0, 0.25)
         //.max_distance(100.0)
         //.motor_model(MotorModel::ForceBased)
         //.set_motor(0.0, 0.0, 30.0, 1.0)
         .local_anchor1(Vec2::new(0.0, 0.0))
-        .local_anchor2(Vec2::new( 0.0, 0.0));
+        .local_anchor2(Vec2::new( 0.0, 0.005));
     commands.spawn((
         Sprite{
             color: Color::srgb(0.0, 1.0, 0.0),
@@ -573,7 +573,7 @@ pub fn setup_player(
         },
         Transform::from_xyz(0.0, 0.0, 0.0),
         RigidBody::Dynamic,
-        //GravityScale(1.25),
+        GravityScale(0.75),
         ActiveEvents::COLLISION_EVENTS,
         Visibility::Visible,
         //LockedAxes::ROTATION_LOCKED,
