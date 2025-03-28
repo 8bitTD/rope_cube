@@ -5,8 +5,8 @@ use bevy::{
 };
 use bevy_rapier2d::prelude::*;
 use bevy_egui::{egui, EguiContexts};
-use clipboard::ClipboardProvider;
-use clipboard::ClipboardContext;
+//use clipboard::ClipboardProvider;
+//use clipboard::ClipboardContext;
 use std::io::Read;
 
 use super::super::state::*;
@@ -214,15 +214,14 @@ pub fn ui_example_system(
             if ui.button("save_json").clicked(){
                 app.cs.save_json();
             }
-            if ui.button("Tutorial").clicked(){
-                app_state.set(AppState::Tutorial);
-            }
+            /*
             if ui.button("clipboard").clicked(){
                 let cb = get_function_string(&app.cs);
                 println!("{:?}", cb);
                 let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                 ctx.set_contents(cb).unwrap();
             }
+            */
             if ui.button("save_rs").clicked(){
                 let cb = get_function_string(&app.cs);
                 let stage_map_path = "./src/stage_map.rs";
@@ -250,6 +249,10 @@ pub fn ui_example_system(
                     let mut file = std::fs::File::create(&stage_map_path).unwrap();
                     file.write_all(new_contents.as_bytes()).unwrap();
                 }
+            }
+
+            if ui.button("Tutorial").clicked(){
+                app_state.set(AppState::Tutorial);
             }
         });
     });

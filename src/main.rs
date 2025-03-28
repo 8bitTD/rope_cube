@@ -14,14 +14,7 @@ mod stage_map;
 fn main() {
     let mut rp = RapierDebugRenderPlugin::default();
     rp.enabled = define::debug::RAPIERDEBUGRENDERPLUGINENABLED;
-    //let px = match define::debug::ISDEBUG{
-    //    true => {-1700},
-    //    _ => {0}
-    //};
-    #[cfg(target_arch = "wasm32")]
-    let px = 0;
-    #[cfg(not(target_arch = "wasm32"))]
-    let px = -1700;
+    let px = get_position_x();
     App::new()
         .add_plugins(
             DefaultPlugins.set(WindowPlugin{
@@ -54,4 +47,14 @@ fn main() {
         .add_plugins(state::StatePlugin)
         .add_plugins(fps::FPSPlugin::new(1))
         .run();
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn get_position_x() -> i32{
+    0
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn get_position_x() -> i32{
+    -1700
 }

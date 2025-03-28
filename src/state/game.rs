@@ -23,12 +23,14 @@ pub struct RopeRoot;
 pub struct PlayerInfo{
     pub is_grab_rope: bool,
     pub grab_time: f32,
+    pub grab_power: f32,
 }
 impl Default for PlayerInfo{
     fn default() -> PlayerInfo{
         PlayerInfo { 
             is_grab_rope: true,
             grab_time: 1.0,
+            grab_power: 50.0
         }
     }
 }
@@ -560,13 +562,14 @@ pub fn setup_player(
         });
     }).id();
     let joint = RopeJointBuilder::new(value::DEFAULTROPEDISTANCE)
-        .set_motor(0.0, 0.0, 50.0, 0.25)
+        .set_motor(0.0, 10.0, 50.0, 0.25)
         //.max_distance(100.0)
         //.motor_model(MotorModel::ForceBased)
         //.set_motor(0.0, 0.0, 30.0, 1.0)
         //.local_axis2(Vec2::new(0.0, 10.0))
-        //.motor_velocity(100.0, 0.0)
+        //.motor_velocity(1.0, 1.0)
         .local_anchor1(Vec2::new(0.0, 10.0))
+        //.local_anchor2(Vec2::new( 0.001, 0.0));
         .local_anchor2(Vec2::new( 0.0, 0.005));
     commands.spawn((
         Sprite{

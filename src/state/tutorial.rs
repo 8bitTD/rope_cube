@@ -177,11 +177,13 @@ pub fn rope_grab(
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
         grab_events.send_default();
         player.2.is_grab_rope = true;
+        player.2.grab_power = 50.0;
     }else{
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Disabled;
         jump_events.send_default();
         *root.1 = Visibility::Hidden;
         player.2.is_grab_rope = false;
+        player.2.grab_power -= time.delta_secs() * 10.0;
     }
 }
 
