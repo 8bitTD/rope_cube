@@ -34,7 +34,7 @@ pub mod value{
 
 pub mod debug{
     pub const STARTSTAGE: usize = 1;//スタートステージ
-    pub const MAXSTAGE: usize = 6;//最大ステージ数
+    pub const MAXSTAGE: usize = 7;//最大ステージ数
     pub const ISCLEAR: bool = false;//初期化クリアフラグ
     pub const RAPIERDEBUGRENDERPLUGINENABLED: bool = false;//物理のガイド表示
     pub const ISSKIPTUTORIAL: bool = false;//チュートリアルスキップ

@@ -55,6 +55,10 @@ pub fn check_player_position(
     if player.3.translation.y > -2000.0{return;}
     player.0.is_grab_rope = true;
     player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
+    player.1.data.as_mut().raw.set_local_anchor1(Vec2::new(0.0, 0.0).into());
+    player.1.data.as_mut().raw.set_local_anchor2(Vec2::new(0.0, 0.0).into());
+    player.3.translation.x = 0.0;
+    player.3.translation.y = 0.0;
     player.2.linvel = Vec2::new(0.0, 0.0);
     rope_root.0.translation = Vec3::new(0.0, 0.0, 0.0);
     *rope_root.1 = Visibility::Visible;
@@ -228,9 +232,9 @@ pub fn push_skip_button(
 
 pub fn push_reset_button(
     mut button: Single<(&Interaction, &Button, &mut BackgroundColor), With<ResetButton>>,
-    mut rope_root: Single<(&mut Transform, &mut Visibility), With<game::RopeRoot>>,
+    mut rope_root: Single<(&mut Transform, &mut Visibility), (With<game::RopeRoot>, Without<game::PlayerInfo>)>,
     mut app: ResMut<MyApp>,
-    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity) ,With<game::PlayerInfo>>,
+    mut player: Single<(&mut game::PlayerInfo, &mut ImpulseJoint, &mut Velocity, &mut Transform) ,With<game::PlayerInfo>>,
 ){
     match button.0{
         Interaction::Hovered => {
@@ -242,8 +246,14 @@ pub fn push_reset_button(
             player.0.is_grab_rope = true;
             player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
             player.2.linvel = Vec2::new(0.0, 0.0);
+            player.3.translation.x = 0.0;
+            player.3.translation.y = 0.0;
             rope_root.0.translation = Vec3::new(0.0, 0.0, 0.0);
             *rope_root.1 = Visibility::Visible;
+            player.1.data.as_mut().raw.set_local_anchor1(Vec2::new(0.0, 0.0).into());
+            player.1.data.as_mut().raw.set_local_anchor2(Vec2::new(0.0, 0.0).into());
+            //player.1.data.as_mut().set_local_axis1(Vec2::new(0.0, 0.0));
+            //player.1.data.as_mut().set_local_axis2(Vec2::new(0.0, 0.0));
         },
         _ => {
             button.2.0 = Color::srgb(0.25, 0.25, 0.25);

@@ -31,6 +31,7 @@ impl Stage{
             4 => get_stage4(),
             5 => get_stage5(),
             6 => get_stage6(),
+            7 => get_stage7(),
             _ => get_stage1(),
         }
     }

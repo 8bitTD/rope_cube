@@ -224,7 +224,7 @@ pub fn update_debug(
     mut app_state: ResMut<NextState<AppState>>,
     keyboard_input:  Res<ButtonInput<KeyCode>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::F2){
+    if keyboard_input.just_pressed(KeyCode::KeyN){
         app_state.set(AppState::Game);
     }
 }

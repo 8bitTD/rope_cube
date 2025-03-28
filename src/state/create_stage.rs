@@ -248,6 +248,7 @@ pub fn ui_example_system(
                     }
                     let mut file = std::fs::File::create(&stage_map_path).unwrap();
                     file.write_all(new_contents.as_bytes()).unwrap();
+                    println!("{:?}", "save_rs!");
                 }
             }
 
