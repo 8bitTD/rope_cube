@@ -345,6 +345,7 @@ pub fn rope_grab(
         root.0.translation = Vec3::new(px, py, 0.0);
         *root.1 = Visibility::Visible;
         player.1.data.as_mut().raw.enabled = rapier2d::dynamics::JointEnabled::Enabled;
+        //player.1.data.as_mut().set_local_anchor1(Vec2::new(0.0, 100.0));
         app.grab_count += 1;
         grab_events.send_default();
         player.2.is_grab_rope = true;
@@ -563,7 +564,9 @@ pub fn setup_player(
         //.max_distance(100.0)
         //.motor_model(MotorModel::ForceBased)
         //.set_motor(0.0, 0.0, 30.0, 1.0)
-        .local_anchor1(Vec2::new(0.0, 0.0))
+        //.local_axis2(Vec2::new(0.0, 10.0))
+        //.motor_velocity(100.0, 0.0)
+        .local_anchor1(Vec2::new(0.0, 10.0))
         .local_anchor2(Vec2::new( 0.0, 0.005));
     commands.spawn((
         Sprite{
