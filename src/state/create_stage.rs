@@ -129,17 +129,13 @@ pub fn ui_example_system(
     blocks: Query<Entity, With<game::FixedBlock>>,
     mut commands: Commands,
     mut app_state: ResMut<NextState<AppState>>,
-    //asset_server: Res<AssetServer>,
-    //mut materials: ResMut<Assets<ColorMaterial>>,
-    //mut meshes: ResMut<Assets<Mesh>>,
+    mut camera: Single<&mut Transform, (With<Camera2d>, Without<game::GoalCollision>)>,
 ) {
     egui::Window::new("").show(contexts.ctx_mut(), |ui| {
         ui.horizontal(|ui|{
             ui.label("stage_");
-            //ui.add_sized([380.0, 20.0], egui::TextEdit::singleline(&mut app.cs.stage_path));
             ui.add(egui::DragValue::new(&mut app.cs.stage_number).range(1..=20));
             if ui.button("open").clicked(){
-                //app.cs.stage_path = res.unwrap().as_path().to_string_lossy().to_string().replace("\\","/");
                 app.cs.load_json();
                 for entity in blocks.iter() {
                     commands.entity(entity).try_despawn_recursive();
@@ -147,6 +143,15 @@ pub fn ui_example_system(
                 goal.translation.x = app.cs.json.goal.px;
                 goal.translation.y = app.cs.json.goal.py;
                 spawn_blocks(&mut commands, &app.cs.json.blocks);
+                let (mut cx, mut cy) = (0.0, 0.0);
+                for b in &app.cs.json.blocks{
+                    cx += b.px;
+                    cy += b.py;
+                }
+                cx = cx / app.cs.json.blocks.len() as f32;
+                cy = cy / app.cs.json.blocks.len() as f32;
+                camera.translation.x = cx;
+                camera.translation.y = cy;
             }
         });
         ui.separator();

@@ -582,7 +582,7 @@ pub fn setup_player(
         GravityScale(0.75),
         ActiveEvents::COLLISION_EVENTS,
         Visibility::Visible,
-        //LockedAxes::ROTATION_LOCKED,
+        //LockedAxes::ROTATION_LOCKED_Z,
         Velocity::zero(),
         Collider::cuboid(4.0, 4.0),
         ImpulseJoint::new(root, joint),
@@ -710,6 +710,7 @@ pub fn setup_player(
                         ..Default::default()
                     },
                     RigidBody::Fixed,
+                    Ccd::enabled(),
                     Transform::from_xyz(tx, ty, 10.0),
                     Velocity::zero(),
                     Collider::cuboid(sx-2.0, sy-2.0),
